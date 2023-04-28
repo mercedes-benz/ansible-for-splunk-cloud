@@ -1,0 +1,5 @@
+---
+- name: Adjusting egress rule set in splunk cloud
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_egress_allow

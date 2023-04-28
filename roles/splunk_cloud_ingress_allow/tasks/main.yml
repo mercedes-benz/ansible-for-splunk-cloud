@@ -1,0 +1,8 @@
+---
+- ansible.builtin.include_tasks: main_loop.yml
+  vars:
+    feature: "{{ feature_item }}"
+  loop: "{{ splunk_cloud_ingress_allow_list.keys() | list }}"
+  loop_control:
+    loop_var: "feature_item"
+...

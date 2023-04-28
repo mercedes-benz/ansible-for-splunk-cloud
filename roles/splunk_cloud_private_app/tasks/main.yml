@@ -1,0 +1,55 @@
+---
+- name: Authenticate to Splunk API
+  ansible.builtin.uri:
+    url: "https://api.splunk.com/2.0/rest/login/splunk"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    user: "{{ splunkbase_username }}"
+    password: "{{ splunkbase_password }}"
+    force_basic_auth: yes
+  register: r_splunk_api_login
+
+- name: List all splunk cloud private apps
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=false&count=100"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_splunk_cloud_app_list
+  tags:
+    - splunk_cloud_list_apps
+
+- name: List all local apps
+  ansible.builtin.find:
+    paths: "{{ splunk_cloud_private_app_folder }}"
+    file_type: directory
+  register: r_local_apps
+
+- ansible.builtin.include_tasks: main_loop.yml
+  vars:
+    splunk_cloud_app_name: "{{ private_app.path | basename }}"
+    splunk_cloud_app_path: "{{ private_app.path }}"
+  loop: "{{ r_local_apps.files }}"
+  loop_control:
+    loop_var: "private_app"
+
+- name: Delete all apps which are installed in the cloud but not in the list of apps from git
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item }}"
+    method: DELETE
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  changed_when: true
+  vars:
+    git_apps: "{{ r_local_apps.files | json_query('[*].path') | flatten | map('basename') | list }}"
+    cloud_apps: "{{ r_splunk_cloud_app_list.json.apps | json_query('[*].appID') | flatten | list }}"
+  loop: "{{ cloud_apps | difference(splunk_cloud_default_apps_list) | difference(git_apps) }}"
+  tags:
+    - splunk_cloud_remove_apps

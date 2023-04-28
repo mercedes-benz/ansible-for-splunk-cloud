@@ -1,0 +1,43 @@
+---
+- name: List all splunk cloud indexes
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes?offset={{ item }}&count=100"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  with_sequence: start=0 end="{{ splunk_cloud_max_index }}" stride=100
+  register: r_list_indexes
+  tags:
+    - splunk_cloud_list_index
+
+- ansible.builtin.set_fact:
+    f_cloud_indexes_list: "{{ item.json | list + f_cloud_indexes_list | default([]) }}"
+  when: item.content != "null\n"
+  loop: "{{ r_list_indexes.results }}"
+  no_log: true
+
+- ansible.builtin.include_tasks: main_loop.yml
+  vars:
+    splunk_cloud_index: "{{ index }}"
+  loop: "{{ splunk_cloud_index_list | default([]) }}"
+  loop_control:
+    loop_var: "index"
+
+- name: Remove indexes in the cloud which are not defined in the ansible inventory
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes/{{ item }}"
+    method: DELETE
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  changed_when: true
+  vars:
+    inventory_indexes: "{{ (splunk_cloud_index_list | default([])) | map(attribute='name') }}"
+  loop: "{{ (f_cloud_indexes_list | map(attribute='name')) | difference(inventory_indexes) | difference(splunk_cloud_internal_index_list) }}"
+  tags:
+    - splunk_cloud_remove_index

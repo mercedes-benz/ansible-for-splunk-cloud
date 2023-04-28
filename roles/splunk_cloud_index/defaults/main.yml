@@ -1,0 +1,14 @@
+---
+splunk_cloud_max_index: 500
+
+splunk_cloud_default_datatype: "event"
+splunk_cloud_default_maxDataSizeMB: 0 # unlimited
+splunk_cloud_default_searchableDays: 90
+
+splunk_cloud_internal_index_list:
+ - "history"
+ - "lastchanceindex"
+ - "main"
+ - "splunklogger"
+ - "summary"
+...

@@ -1,0 +1,21 @@
+name: deploy private apps
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/**"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy private apps
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_privateapp_install.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}

@@ -1,0 +1,21 @@
+name: deploy ingress config
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "inventory/host_vars/*/ingress_allowlist.yml"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy ingress config
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_ingress_allow.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}

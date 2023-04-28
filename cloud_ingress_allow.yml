@@ -1,0 +1,4 @@
+- name: Adjusting ingress rule set in splunk cloud
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_ingress_allow

@@ -1,0 +1,23 @@
+---
+
+- name: Check if splunkbase app already exists in the cloud | {{ splunkbase_app.id }}
+  ansible.builtin.set_fact:
+    f_splunkbase_app_exists: "{{ splunkbase_app.id | string in (r_splunkbase_apps.json | json_query('apps[*].splunkbaseID') | list) }}"
+  tags:
+    - splunkbase_check_apps
+
+- name: Get current app config from the cloud | {{ splunkbase_app.id }}
+  ansible.builtin.set_fact:
+    f_splunkbase_app_config: '{{ r_splunkbase_apps.json | json_query(query) | first }}'
+  vars:
+    query: "apps[? splunkbaseID == '{{ splunkbase_app.id }}']"
+  when: f_splunkbase_app_exists
+  tags:
+    - splunkbase_check_apps
+
+- name: Check if splunkbase app needs an update | {{ splunkbase_app.id }}
+  ansible.builtin.set_fact:
+    f_splunkbase_app_needs_update: "{{ splunkbase_app.version is version(f_splunkbase_app_config.version, '>') }}"
+  when: f_splunkbase_app_exists
+  tags:
+    - splunkbase_check_apps

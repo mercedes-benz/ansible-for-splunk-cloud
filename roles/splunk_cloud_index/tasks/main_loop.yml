@@ -1,0 +1,23 @@
+---
+- name: Set default parameter for index when not defined | {{ splunk_cloud_index.name }}
+  ansible.builtin.set_fact:
+    splunk_cloud_index_config: "{{ splunk_cloud_index_config | default({}) | combine({item.key: item.value}) }}"
+  with_items:
+    - { key: 'name', value: "{{ splunk_cloud_index.name }}" }
+    - { key: 'datatype', value: "{{ splunk_cloud_index.datatype | default(splunk_cloud_default_datatype) }}" }
+    - { key: 'maxDataSizeMB', value: "{{ splunk_cloud_index.maxDataSizeMB | default(splunk_cloud_default_maxDataSizeMB) }}" }
+    - { key: 'searchableDays', value: "{{ splunk_cloud_index.searchableDays | default(splunk_cloud_default_searchableDays) }}" }
+  tags:
+    - always
+
+- ansible.builtin.import_tasks: "check.yml"
+
+- ansible.builtin.import_tasks: "create.yml"
+  when: not f_splunk_cloud_index_exists
+
+- ansible.builtin.import_tasks: "update.yml"
+  when: f_splunk_cloud_index_exists and f_splunk_cloud_index_needs_update
+
+- ansible.builtin.debug:
+    msg: "No changes for index '{{ splunk_cloud_index_config.name }}' needed"
+  when: f_splunk_cloud_index_exists and not f_splunk_cloud_index_needs_update

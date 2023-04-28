@@ -1,0 +1,39 @@
+---
+- name: Create a tar.gz archive of the app folder | {{ splunk_cloud_app_name }}
+  community.general.archive:
+    path: "{{ splunk_cloud_app_path }}"
+    dest: "/tmp/{{ splunk_cloud_app_name }}.tar.gz"
+    format: gz
+    force_archive: true
+  register: r_splunk_app_archive
+
+- ansible.builtin.set_fact:
+    f_private_app_archive: "{{ r_splunk_app_archive.dest }}"
+
+- name: Send app to validation | {{ splunk_cloud_app_name }}
+  ansible.builtin.command: "curl -X POST 'https://appinspect.splunk.com/v1/app/validate' --header 'Authorization: Bearer {{ r_splunk_api_login.json.data.token }}' --form 'app_package=@{{ f_private_app_archive }}'"
+  register: r_splunk_validate_submit
+
+- name: Extract validation request id | {{ splunk_cloud_app_name }}
+  ansible.builtin.set_fact:
+    f_validation_id: "{{ (r_splunk_validate_submit.stdout | from_json).request_id }}"
+
+- name: Check validation status | {{ splunk_cloud_app_name }}
+  ansible.builtin.command: "curl 'https://appinspect.splunk.com/v1/app/validate/status/{{ f_validation_id }}?included_tags=private_victoria' --header 'Authorization: Bearer {{ r_splunk_api_login.json.data.token }}'"
+  register: r_splunk_validate_status
+  until: (r_splunk_validate_status.stdout | from_json).status != "PROCESSING"
+  retries: 100
+  delay: 10
+
+- name: Extract validation info | {{ splunk_cloud_app_name }}
+  ansible.builtin.set_fact:
+    f_splunk_validate_info: "{{ (r_splunk_validate_status.stdout | from_json).info }}"
+
+- name: Check if app passed the validation | {{ splunk_cloud_app_name }}
+  ansible.builtin.set_fact:
+    f_splunk_validate_passed: '{{ (r_splunk_validate_status.stdout | from_json).status == "SUCCESS" and f_splunk_validate_info.error == 0 and f_splunk_validate_info.failure == 0 and f_splunk_validate_info.manual_check == 0 }}'
+
+- name: Fail when app validation does not pass | {{ splunk_cloud_app_name }}
+  ansible.builtin.fail:
+    msg: "Validation not passed"
+  when: not f_splunk_validate_passed

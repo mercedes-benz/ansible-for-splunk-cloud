@@ -1,0 +1,17 @@
+---
+- name: Check status of splunk cloud environment
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get status of splunk cloud environment
+      ansible.builtin.uri:
+        url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/status"
+        method: GET
+        status_code: [200, 202]
+        return_content: true
+        headers:
+          Authorization: "Bearer {{ splunk_cloud_token }}"
+      register: r_splunk_cloud_status
+
+    - debug:
+        msg: "{{ r_splunk_cloud_status.json }}"

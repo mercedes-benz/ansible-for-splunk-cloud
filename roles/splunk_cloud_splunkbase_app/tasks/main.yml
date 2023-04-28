@@ -1,0 +1,52 @@
+---
+- name: Login into splunkbase
+  ansible.builtin.uri:
+    url: "https://splunkbase.splunk.com/api/account:login"
+    method: POST
+    return_content: true
+    timeout: 120
+    body_format: form-urlencoded
+    body:
+      username: "{{ splunkbase_username }}"
+      password: "{{ splunkbase_password }}"
+  register: r_splunkbase_login
+
+- name: "Extract splunkbase sessionid from cookie"
+  ansible.builtin.set_fact:
+    f_splunkbase_sessionid: "{{ r_splunkbase_login.cookies['sessionid'] }}"
+
+- name: List all splunkbase apps in splunk cloud environment
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=true&count=100"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_splunkbase_apps
+  tags:
+    - splunkbase_list_apps
+
+- ansible.builtin.include_tasks: main_loop.yml
+  vars:
+    splunkbase_app: "{{ app }}"
+  loop: "{{ splunkbase_app_list | default([]) }}"
+  loop_control:
+    loop_var: "app"
+
+- name: Uninstall splunkbase apps in the cloud which are not defined in the ansible inventory
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item.name }}"
+    method: DELETE
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  changed_when: true
+  when: item.splunkbaseID | int not in inventory_app_ids
+  vars:
+    inventory_app_ids: "{{ (splunkbase_app_list | default([])) | map(attribute='id') }}"
+  loop: "{{ r_splunkbase_apps.json.apps | list }}"
+  tags:
+    - splunkbase_remove_app

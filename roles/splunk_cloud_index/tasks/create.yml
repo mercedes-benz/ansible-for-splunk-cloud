@@ -1,0 +1,16 @@
+---
+- name: Create new splunk cloud index | {{ splunk_cloud_index_config.name }}
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes"
+    method: POST
+    body_format: json
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: '{ "datatype": "{{ splunk_cloud_index_config.datatype }}", "maxDataSizeMB": {{ splunk_cloud_index_config.maxDataSizeMB | int }}, "name": "{{ splunk_cloud_index_config.name }}", "searchableDays": {{ splunk_cloud_index_config.searchableDays | int }} }'
+  changed_when: true
+  register: r_create_index
+  tags:
+    - splunk_cloud_create_index

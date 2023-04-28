@@ -1,0 +1,21 @@
+name: deploy splunkbase apps
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "inventory/host_vars/*/splunkbase_apps.yml"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy splunkbase apps
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_splunkbaseapp_install.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}

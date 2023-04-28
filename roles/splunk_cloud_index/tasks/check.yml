@@ -1,0 +1,23 @@
+---
+- name: Check if index already exists in the cloud | {{ splunk_cloud_index_config.name }}
+  ansible.builtin.set_fact:
+    f_splunk_cloud_index_exists: "{{ splunk_cloud_index_config.name in (f_cloud_indexes_list | json_query('[*].name') | list) }}"
+  tags:
+    - splunk_cloud_list_index
+
+- name: Get current index config from the cloud | {{ splunk_cloud_index_config.name }}
+  ansible.builtin.set_fact:
+    f_splunk_cloud_index_config: '{{ f_cloud_indexes_list | json_query("[? name ==`" + splunk_cloud_index_config.name + "`]") | first }}'
+  when: f_splunk_cloud_index_exists
+  tags:
+    - splunk_cloud_list_index
+
+- name: Check if index config needs an update | {{ splunk_cloud_index_config.name }}
+  ansible.builtin.set_fact:
+    f_splunk_cloud_index_needs_update: '{{
+      (f_splunk_cloud_index_config.datatype != splunk_cloud_index_config.datatype) or
+      (f_splunk_cloud_index_config.maxDataSizeMB | int != splunk_cloud_index_config.maxDataSizeMB | int) or
+      (f_splunk_cloud_index_config.searchableDays | int != splunk_cloud_index_config.searchableDays | int) }}'
+  when: f_splunk_cloud_index_exists
+  tags:
+    - splunk_cloud_list_index

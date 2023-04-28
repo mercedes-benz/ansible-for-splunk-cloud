@@ -1,0 +1,39 @@
+---
+- name: Get current egress rule config from splunk cloud
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_splunk_cloud_egress_list
+  tags:
+    - splunk_cloud_egress_list
+
+- ansible.builtin.include_tasks: main_loop.yml
+  vars:
+    egress_rule: "{{ egress_item }}"
+  loop: "{{ splunk_cloud_egress_allow_list }}"
+  loop_control:
+    loop_var: "egress_item"
+
+- name: Remove egress rules which are not defined in the ansible inventory
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports/{{ item.port }}"
+    method: DELETE
+    body_format: json
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: '{ "subnets": {{ item.destinationRanges }} }'
+  changed_when: true
+  when: item.port|int not in inventory_egress_ports
+  vars:
+    inventory_egress_ports: "{{ splunk_cloud_egress_allow_list | map(attribute='port') }}"
+  loop: "{{ r_splunk_cloud_egress_list.json | list }}"
+  tags:
+    - splunk_cloud_egress_remove
+...

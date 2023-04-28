@@ -1,0 +1,40 @@
+name: execute ansible playbook
+on:
+  workflow_call:
+    inputs:
+      ansible_inventory:
+        required: true
+        type: string
+      ansible_playbook:
+        required: true
+        type: string
+      ansible_extra_args:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      ANSIBLE_VAULT_PASSWORD:
+        required: true
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+       python-version: '3.x'
+       architecture: 'x64'
+       cache: 'pip'
+
+    - name: "install ansible"
+      run: pip install -r requirements.txt
+
+    - name: "run playbook"
+      run: |
+        echo '${{ secrets.ANSIBLE_VAULT_PASSWORD }}' > vault.txt
+        ansible-playbook -i ${{ inputs.ansible_inventory }} --vault-pass-file vault.txt ${{ inputs.ansible_playbook }} ${{ inputs.ansible_extra_args }}
+      env:
+        PY_COLORS: '1'
+        ANSIBLE_FORCE_COLOR: '1'

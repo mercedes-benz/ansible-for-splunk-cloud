@@ -1,0 +1,12 @@
+---
+- ansible.builtin.import_tasks: "check.yml"
+
+- ansible.builtin.import_tasks: "install.yml"
+  when: not f_splunkbase_app_exists
+
+- ansible.builtin.import_tasks: "update.yml"
+  when: f_splunkbase_app_exists and f_splunkbase_app_needs_update
+
+- ansible.builtin.debug:
+    msg: "No changes for app '{{ f_splunkbase_app_config.name }}' needed"
+  when: f_splunkbase_app_exists and not f_splunkbase_app_needs_update

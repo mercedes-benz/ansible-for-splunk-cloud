@@ -1,0 +1,20 @@
+---
+- name: Install new splunkbase app in splunk cloud | {{ splunkbase_app.id }}
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=true"
+    method: POST
+    body_format: form-urlencoded
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      X-Splunkbase-Authorization: "{{ f_splunkbase_sessionid }}"
+      ACS-Licensing-Ack: "{{ splunkbase_app.license }}"
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body:
+      splunkbaseID: "{{ splunkbase_app.id }}"
+      version: "{{ splunkbase_app.version }}"
+  changed_when: r_install_app.json.status == "processing"
+  register: r_install_app
+  tags:
+    - splunkbase_install_app

@@ -1,0 +1,6 @@
+---
+splunk_cloud_egress_allow_list:
+  - port: 8089
+    subnets:
+      - "1.1.1.1/32" # some public endpoint of your company you may need to reach from splunk cloud
+      - "8.8.8.8/32" # some public endpoint of your company you may need to reach from splunk cloud

@@ -1,0 +1,47 @@
+---
+- name: Get current ingress allow config from splunk cloud - {{ feature }}
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_splunk_cloud_ingress_list
+  tags:
+    - splunk_cloud_ingress_list
+
+- name: Add ingress allow list entries - {{ feature }}
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    method: POST
+    body_format: json
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: '{ "subnets": ["{{ item }}"] }'
+  changed_when: true
+  when: item not in r_splunk_cloud_ingress_list.json.subnets | list
+  loop: "{{ splunk_cloud_ingress_allow_list[feature] }}"
+  tags:
+    - splunk_cloud_ingress_add
+
+- name: Remove ingress allow list entries when not in ansible inventory - {{ feature }}
+  ansible.builtin.uri:
+    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    method: DELETE
+    body_format: json
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: '{ "subnets": ["{{ item }}"] }'
+  when: item not in splunk_cloud_ingress_allow_list[feature]
+  changed_when: true
+  loop: "{{ r_splunk_cloud_ingress_list.json.subnets | list }}"
+  tags:
+    - splunk_cloud_ingress_remove
+...

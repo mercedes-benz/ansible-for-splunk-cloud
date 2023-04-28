@@ -1,0 +1,6 @@
+---
+- name: Install/update/remove private apps in splunk cloud
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_private_app
+    - splunk_cloud_restart

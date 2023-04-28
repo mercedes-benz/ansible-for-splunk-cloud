@@ -1,0 +1,6 @@
+---
+- name: Add/update/remove indexes in splunk cloud
+  hosts: splunkcloud
+  gather_facts: false
+  roles:
+    - splunk_cloud_index
