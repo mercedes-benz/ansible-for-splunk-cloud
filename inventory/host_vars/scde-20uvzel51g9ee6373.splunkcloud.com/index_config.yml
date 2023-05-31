@@ -12,3 +12,6 @@ splunk_cloud_index_list:
   - name: "nix-security"
     searchableDays: 90
     maxDataSizeMB: 2048
+  - name: "conf2023-demo"
+    searchableDays: 1
+    maxDataSizeMB: 2023
