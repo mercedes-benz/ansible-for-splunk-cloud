@@ -36,6 +36,7 @@
   loop: "{{ r_local_apps.files }}"
   loop_control:
     loop_var: "private_app"
+    label: "{{ private_app.path }}"
 
 - name: Delete all apps which are installed in the cloud but not in the list of apps from git
   ansible.builtin.uri:
