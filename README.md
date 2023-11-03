@@ -60,6 +60,10 @@ splunkbase_app_list:
  - id: 2968 # SA-cim_vladiator
    version: "1.8.2"
    license: "https://www.apache.org/licenses/LICENSE-2.0.html"
+   permissions: # optional
+     sharing: "global"
+     read: "*"
+     write: "sc_admin,power"
 ```
 
 ### configure splunk cloud ingress rules

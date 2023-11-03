@@ -7,6 +7,11 @@
 - ansible.builtin.import_tasks: "update.yml"
   when: f_splunkbase_app_exists and f_splunkbase_app_needs_update
 
+- ansible.builtin.import_tasks: "permission.yml"
+  when: 
+    # only adjust permissions when permissions are defined in the inventory
+    - splunkbase_app.permissions is defined 
+
 - ansible.builtin.debug:
     msg: "No changes for app '{{ f_splunkbase_app_config.name }}' needed"
   when: f_splunkbase_app_exists and not f_splunkbase_app_needs_update

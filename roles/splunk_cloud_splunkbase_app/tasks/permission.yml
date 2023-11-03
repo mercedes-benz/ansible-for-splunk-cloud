@@ -1,0 +1,23 @@
+---
+- name: Set splunkbase app name
+  ansible.builtin.set_fact:
+    f_splunkbase_app_name: "{{ [r_install_app.json.name, r_update_app.json.name, f_splunkbase_app_config.name] | reject('undefined') | first }}"
+
+- name: Set splunkbase app permissions
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:8089/services/apps/local/{{ f_splunkbase_app_name }}/acl"
+    method: POST
+    body_format: form-urlencoded
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body:
+      owner: "{{ splunkbase_app.permissions.owner | default('nobody') }}"
+      sharing: "{{ splunkbase_app.permissions.sharing }}"
+      perms.read: "{{ splunkbase_app.permissions.read }}"
+      perms.write: "{{ splunkbase_app.permissions.write }}"
+  register: r_update_app_permissions
+  until: r_update_app_permissions.status == 200
+  retries: 5
+  delay: 5
+  tags:
+    - splunkbase_app_permisson
