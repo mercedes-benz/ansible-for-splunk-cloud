@@ -1,7 +1,7 @@
 ---
 - name: Get current egress rule config from splunk cloud
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -11,16 +11,20 @@
   tags:
     - splunk_cloud_egress_list
 
-- ansible.builtin.include_tasks: main_loop.yml
+- name: "Loop over egress rules"
+  ansible.builtin.include_tasks: main_loop.yml
   vars:
     egress_rule: "{{ egress_item }}"
-  loop: "{{ splunk_cloud_egress_allow_list }}"
+  loop: "{{ splunk_cloud_egress_allow_list if splunk_cloud_egress_allow_list is iterable and splunk_cloud_egress_allow_list is not string else [] }}"
   loop_control:
     loop_var: "egress_item"
+  when:
+    - splunk_cloud_egress_allow_list is iterable and splunk_cloud_egress_allow_list is not string
+    - (splunk_cloud_egress_allow_list | length) > 0
 
 - name: Remove egress rules which are not defined in the ansible inventory
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports/{{ item.port }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports/{{ item.port }}"
     method: DELETE
     body_format: json
     status_code: [200, 202]
@@ -36,4 +40,3 @@
   loop: "{{ r_splunk_cloud_egress_list.json | list }}"
   tags:
     - splunk_cloud_egress_remove
-...

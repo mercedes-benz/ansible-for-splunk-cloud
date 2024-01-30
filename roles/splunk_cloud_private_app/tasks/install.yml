@@ -1,8 +1,16 @@
 ---
 # the ansible module can only sent base64 encoded multipart/form-data see: https://github.com/ansible/ansible/issues/73621
 # because the splunk endpoint only accepts raw bytes we have to use curl instead
-- name: Upload app to Splunk Cloud | {{ splunk_cloud_app_name }}
-  ansible.builtin.command: "curl -X POST 'https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria' --header 'X-Splunk-Authorization: {{ r_splunk_api_login.json.data.token }}' --header 'Authorization: Bearer {{ splunk_cloud_token }}' --header 'ACS-Legal-Ack: Y' --data-binary '@{{ f_private_app_archive }}'"
+- name: Upload app to Splunk Cloud | {{ splunk_cloud_app_name }} # noqa command-instead-of-module
+  ansible.builtin.command: |
+    curl -X POST 'https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria'
+    --header 'X-Splunk-Authorization: {{ r_splunk_api_login.json.data.token }}'
+    --header 'Authorization: Bearer {{ splunk_cloud_token }}'
+    --header 'ACS-Legal-Ack: Y'
+    --data-binary '@{{ f_private_app_archive }}'
+  register: command_output
+  failed_when: command_output.rc!=0
+  changed_when: command_output.rc==0
   tags:
     - splunk_cloud_install_app
 

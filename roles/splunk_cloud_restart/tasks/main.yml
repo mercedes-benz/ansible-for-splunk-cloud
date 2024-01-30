@@ -7,7 +7,7 @@
 
 - name: Check if restart is required
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/status"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/status"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -19,7 +19,7 @@
 
 - name: Restart splunk cloud
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/restart-now"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/restart-now"
     method: POST
     status_code: [200, 202]
     return_content: true
@@ -28,13 +28,15 @@
       Content-Type: application/json
       Authorization: "Bearer {{ splunk_cloud_token }}"
   register: r_splunk_restart
-  when: 
+  retries: 100
+  delay: 10
+  when:
     - r_splunk_status.json.messages.restartRequired | bool
 
 - name: Wait for the restart to begin
   ansible.builtin.wait_for:
     timeout: 10
-  when: 
+  when:
     - r_splunk_status.json.messages.restartRequired | bool
   tags:
     - never
@@ -42,7 +44,7 @@
 
 - name: Wait for restart to finish - sh-standalone
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/status"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/status"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -50,10 +52,10 @@
       Content-Type: application/json
       Authorization: "Bearer {{ splunk_cloud_token }}"
   register: r_splunk_restart_status
-  when: 
+  when:
     - r_splunk_status.json.messages.restartRequired | bool
     - splunk_cloud_sh_type == "standalone"
-  until: 
+  until:
     - r_splunk_restart_status.status == 200
     - r_splunk_restart_status.json.infrastructure.status == "Ready"
   retries: 20
@@ -64,7 +66,7 @@
 
 - name: Wait for restart to finish - sh-cluster
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/restart/status"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/restart/status"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -72,10 +74,10 @@
       Content-Type: application/json
       Authorization: "Bearer {{ splunk_cloud_token }}"
   register: r_splunk_restart_status
-  when: 
+  when:
     - r_splunk_status.json.messages.restartRequired | bool
     - splunk_cloud_sh_type == "cluster"
-  until: 
+  until:
     - r_splunk_restart_status.status == 200
     - not (r_splunk_restart_status.json.shcStatus[0].rollingRestartInitiated | bool)
     - r_splunk_restart_status.json.shcStatus[0].serviceReady | bool

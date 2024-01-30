@@ -1,0 +1,14 @@
+---
+splunk_cloud_index_list:
+  - name: "win-system"
+    searchableDays: 30
+    maxDataSizeMB: 1024
+  - name: "win-security"
+    searchableDays: 90
+    maxDataSizeMB: 2048
+  - name: "nix-system"
+    searchableDays: 30
+    maxDataSizeMB: 1024
+  - name: "nix-security"
+    searchableDays: 90
+    maxDataSizeMB: 2048

@@ -1,7 +1,7 @@
 ---
 - name: Update splunk cloud index | {{ splunk_cloud_index_config.name }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes/{{ splunk_cloud_index_config.name }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/indexes/{{ splunk_cloud_index_config.name }}"
     method: PATCH
     body_format: json
     status_code: [200, 202]

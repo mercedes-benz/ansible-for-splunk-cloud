@@ -1,0 +1,5 @@
+---
+private_app_list:
+- id: "TA-tesla-data"
+  url: "github://livehybrid/TA-tesla-data"
+  version: "v1.1.1"

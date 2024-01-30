@@ -1,0 +1,23 @@
+---
+splunkbase_app_list:
+  - id: 2968 # SA-cim_vladiator
+    version: "1.8.2"
+    license: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin,power"
+  # - id: 4621 # TrackMe
+  #   version: "2.0.71"
+  #   license: "https://docs.trackme-solutions.com/license.html"
+  #   permissions:
+  #     sharing: "global"
+  #     read: "*"
+  #     write: "sc_admin,power"
+  - id: 6731 # Splunk Cloud Deployment Manager
+    version: "1.2.0"
+    license: "https://cdn.splunkbase.splunk.com/static/misc/eula.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin,power"

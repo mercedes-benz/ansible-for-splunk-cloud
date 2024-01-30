@@ -1,7 +1,7 @@
 ---
 - name: Get current ingress allow config from splunk cloud - {{ feature }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -13,7 +13,7 @@
 
 - name: Add ingress allow list entries - {{ feature }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
     method: POST
     body_format: json
     status_code: [200, 202]
@@ -28,9 +28,14 @@
   tags:
     - splunk_cloud_ingress_add
 
+- name: Construct list of subnets to remove
+  set_fact:
+    subnets_to_remove: "{{ r_splunk_cloud_ingress_list.json.subnets | difference(splunk_cloud_ingress_allow_list[feature]) }}"
+
+# Remove first, otherwise you may get errors in overlap
 - name: Remove ingress allow list entries when not in ansible inventory - {{ feature }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/{{ feature }}/ipallowlists"
     method: DELETE
     body_format: json
     status_code: [200, 202]
@@ -38,10 +43,8 @@
     headers:
       Content-Type: application/json
       Authorization: "Bearer {{ splunk_cloud_token }}"
-    body: '{ "subnets": ["{{ item }}"] }'
-  when: item not in splunk_cloud_ingress_allow_list[feature]
+    body: "{{ {'subnets': subnets_to_remove} | to_json }}"
+  when: subnets_to_remove | length > 0
   changed_when: true
-  loop: "{{ r_splunk_cloud_ingress_list.json.subnets | list }}"
   tags:
     - splunk_cloud_ingress_remove
-...

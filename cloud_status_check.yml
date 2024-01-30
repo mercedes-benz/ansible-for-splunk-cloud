@@ -5,7 +5,7 @@
   tasks:
     - name: Get status of splunk cloud environment
       ansible.builtin.uri:
-        url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/status"
+        url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/status"
         method: GET
         status_code: [200, 202]
         return_content: true

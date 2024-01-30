@@ -1,4 +1,10 @@
 ---
+- name: Ensure AppInspect report directory exists
+  ansible.builtin.file:
+    path: "{{ splunk_cloud_appinspect_reports_folder }}"
+    mode: "0755"
+    state: directory
+
 - name: Authenticate to Splunk API
   ansible.builtin.uri:
     url: "https://api.splunk.com/2.0/rest/login/splunk"
@@ -7,12 +13,12 @@
     return_content: true
     user: "{{ splunkbase_username }}"
     password: "{{ splunkbase_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
   register: r_splunk_api_login
 
 - name: List all splunk cloud private apps
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=false&count=100"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=false&count=100"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -23,13 +29,27 @@
   tags:
     - splunk_cloud_list_apps
 
+# Download local apps
+- name: Download local apps
+  loop: "{{ private_app_list | default([]) }}"
+  loop_control:
+    label: "{{ private_app.id }}"
+    loop_var: "private_app"
+  ansible.builtin.include_tasks: download_loop.yml
+  vars:
+    private_app_name: "{{ private_app.id }}"
+    private_app_location: "{{ private_app.url | urlsplit }}"
+    private_app_version: "{{ private_app.version }}"
+    private_app: "{{ private_app }}"
+
 - name: List all local apps
   ansible.builtin.find:
     paths: "{{ splunk_cloud_private_app_folder }}"
     file_type: directory
   register: r_local_apps
 
-- ansible.builtin.include_tasks: main_loop.yml
+- name: "Loop over each private app"
+  ansible.builtin.include_tasks: main_loop.yml
   vars:
     splunk_cloud_app_name: "{{ private_app.path | basename }}"
     splunk_cloud_app_path: "{{ private_app.path }}"
@@ -38,9 +58,9 @@
     loop_var: "private_app"
     label: "{{ private_app.path }}"
 
-- name: Delete all apps which are installed in the cloud but not in the list of apps from git
+- name: Delete all apps which are installed in the cloud but not in the list of apps from git # noqa jinja[invalid]
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item }}"
     method: DELETE
     status_code: [200, 202]
     return_content: true
@@ -51,6 +71,6 @@
   vars:
     git_apps: "{{ r_local_apps.files | json_query('[*].path') | flatten | map('basename') | list }}"
     cloud_apps: "{{ r_splunk_cloud_app_list.json.apps | json_query('[*].appID') | flatten | list }}"
-  loop: "{{ cloud_apps | difference(splunk_cloud_default_apps_list) | difference(git_apps) }}"
+  loop: "{{ cloud_apps | difference(splunk_cloud_private_app_default_apps_list) | difference(git_apps) }}"
   tags:
     - splunk_cloud_remove_apps

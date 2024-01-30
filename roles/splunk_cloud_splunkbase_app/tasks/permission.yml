@@ -5,7 +5,7 @@
 
 - name: Set splunkbase app permissions
   ansible.builtin.uri:
-    url: "https://{{ inventory_hostname }}:8089/services/apps/local/{{ f_splunkbase_app_name }}/acl"
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/services/apps/local/{{ f_splunkbase_app_name }}/acl"
     method: POST
     body_format: form-urlencoded
     headers:

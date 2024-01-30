@@ -1,0 +1,3 @@
+---
+splunk_cloud_sh_type: "cluster"
+splunk_cloud_token: "{{ lookup('env', 'SPLUNK_TOKEN') }}"

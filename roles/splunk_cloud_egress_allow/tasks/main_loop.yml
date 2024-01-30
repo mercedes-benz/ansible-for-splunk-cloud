@@ -2,15 +2,18 @@
 - name: Check if a rule for the port already exists | {{ egress_rule.port }}
   ansible.builtin.set_fact:
     f_egress_rule_exists: "{{ egress_rule.port in (r_splunk_cloud_egress_list.json | json_query('[*].port') | list) }}"
+    f_egress_subnet: "{{ egress_rule.subnets | default([]) }}"
 
 - name: Check if the rule contains the same subnets as defined in the inventory | {{ egress_rule.port }}
   ansible.builtin.set_fact:
-    f_egress_rule_needs_update: '{{ (r_splunk_cloud_egress_list.json | json_query("[? port ==`" + egress_rule.port | string + "`].destinationRanges") | first | list) | symmetric_difference(egress_rule.subnets) | length > 0 }}'
+    f_egress_rule_needs_update: |
+      {{ (r_splunk_cloud_egress_list.json | json_query("[? port ==`" + egress_rule.port | string + "`].destinationRanges") | first | default([]) | list)
+      | symmetric_difference(f_egress_subnet) | length > 0 }}
   when: f_egress_rule_exists
 
 - name: Remove egress rule before recreating because of changes in the rule | {{ egress_rule.port }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports/{{ egress_rule.port }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports/{{ egress_rule.port }}"
     method: DELETE
     body_format: json
     status_code: [200, 202]
@@ -20,7 +23,9 @@
       Authorization: "Bearer {{ splunk_cloud_token }}"
     body: '{ "subnets": {{ cloud_egress_rule_subnets }} }'
   vars:
-    cloud_egress_rule_subnets: '{{ r_splunk_cloud_egress_list.json | json_query("[? port ==`" + egress_rule.port | string + "`].destinationRanges") | first | list }}'
+    cloud_egress_rule_subnets: |
+      {{ r_splunk_cloud_egress_list.json | json_query("[? port ==`" + egress_rule.port | string + "`].destinationRanges")
+      | first | default([]) | list }}
   when: f_egress_rule_exists and f_egress_rule_needs_update
   changed_when: true
   tags:
@@ -29,7 +34,7 @@
 
 - name: Add/Update egress rule | {{ egress_rule.port }}
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/access/outbound-ports"
     method: POST
     body_format: json
     status_code: [200, 202]
@@ -39,12 +44,14 @@
       Authorization: "Bearer {{ splunk_cloud_token }}"
     body: '{ "outboundPorts": [{ "subnets": {{ egress_rule.subnets }}, "port": {{ egress_rule.port }} }] }'
   changed_when: true
-  when: not f_egress_rule_exists or (f_egress_rule_exists and f_egress_rule_needs_update)
+  when:
+    - not f_egress_rule_exists or (f_egress_rule_exists and f_egress_rule_needs_update)
+    - f_egress_subnet | length > 0
   tags:
     - splunk_cloud_egress_add
     - splunk_cloud_egress_update
 
-- ansible.builtin.debug:
+- name: "No changes required | {{ egress_rule.port }}"
+  ansible.builtin.debug:
     msg: "no changes needed for port: {{ egress_rule.port }}"
   when: f_egress_rule_exists and not f_egress_rule_needs_update
-...

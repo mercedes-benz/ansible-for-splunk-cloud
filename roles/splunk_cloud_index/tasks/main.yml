@@ -1,7 +1,7 @@
 ---
 - name: List all splunk cloud indexes
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes?offset={{ item }}&count=100"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/indexes?offset={{ item }}&count=100"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -28,7 +28,7 @@
 
 - name: Remove indexes in the cloud which are not defined in the ansible inventory
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/indexes/{{ item }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/indexes/{{ item }}"
     method: DELETE
     status_code: [200, 202]
     return_content: true

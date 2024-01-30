@@ -2,23 +2,23 @@
 - name: Check if private app already exists in the cloud
   ansible.builtin.set_fact:
     f_splunk_cloud_app_exists: "{{ splunk_cloud_app_name in (r_splunk_cloud_app_list.json | json_query('apps[*].appID') | list) }}"
-  tags: 
+  tags:
     - splunk_cloud_check_app
 
 - name: Get current private app config from the cloud
   ansible.builtin.set_fact:
     f_splunk_cloud_app_config: '{{ r_splunk_cloud_app_list.json | json_query("apps[? appID == `" + splunk_cloud_app_name + "`]") | first }}'
   when: f_splunk_cloud_app_exists
-  tags: 
+  tags:
     - splunk_cloud_check_app
 
 - name: Get current private app version from filesystem
   ansible.builtin.set_fact:
-    f_splunk_local_app_version: "{{ lookup('ansible.builtin.ini', 'version', section='launcher', file=splunk_cloud_app_path +'/default/app.conf') }}"
+    f_splunk_local_app_version: "{{ lookup('ansible.builtin.ini', 'version', section='launcher', file=splunk_cloud_app_path + '/default/app.conf') }}"
 
 - name: Check if private app needs an update
   ansible.builtin.set_fact:
     f_splunk_cloud_app_needs_update: "{{ f_splunk_local_app_version is version(f_splunk_cloud_app_config.version, '>') }}"
   when: f_splunk_cloud_app_exists
-  tags: 
+  tags:
     - splunk_cloud_check_app

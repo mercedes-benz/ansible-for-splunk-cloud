@@ -1,0 +1,158 @@
+---
+splunkbase_app_list:
+  - id: 2968 # SA-cim_vladiator
+    version: "1.8.2"
+    license: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin,power"
+  # - id: 4621 # TrackMe
+  #   version: "2.0.71"
+  #   license: "https://docs.trackme-solutions.com/license.html"
+  #   permissions:
+  #     sharing: "global"
+  #     read: "*"
+  #     write: "sc_admin,power"
+  - id: 6731 # Splunk Cloud Deployment Manager
+    version: "1.2.0"
+    license: "https://cdn.splunkbase.splunk.com/static/misc/eula.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # sudo technology add-on
+  - id: 3038
+    version: "0.1.2"
+    license: "https://opensource.org/licenses/MIT"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Sankey Diagram - Custom Visualization
+  - id: 3112
+    version: "1.6.0"
+    license: "http://www.splunk.com/view/SP-CAAAAFA"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Add-on for Microsoft SQL Server
+  - id: 2648
+    version: "3.0.0"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # URL Toolbox
+  - id: 2734
+    version: "1.9.2"
+    license: "https://cdn.splunkbase.splunk.com/static/misc/eula.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Add on for Microsoft Azure
+  - id: 3757
+    version: "4.0.3"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Slack Notification Alert
+  - id: 2878
+    version: "2.3.0"
+    license: "https://github.com/splunk/slack-alerts/blob/main/LICENSE"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Timeline - Custom Visualization
+  - id: 3120
+    version: "1.6.2"
+    license: "http://www.splunk.com/view/SP-CAAAAFA"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # GitHub App for Splunk
+  - id: 5596
+    version: "1.3.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Security Essentials
+  - id: 3435
+    version: "3.7.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Add-on for Microsoft Security
+  - id: 6207
+    version: "2.1.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Add-on for Microsoft Cloud Services
+  - id: 3110
+    version: "5.2.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Machine Learning Toolkit
+  - id: 2890
+    version: "5.4.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk App for Lookup File Editing
+  - id: 1724
+    version: "4.0.2"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Palo Alto Networks App for Splunk
+  - id: 491
+    version: "8.1.1"
+    license: "http://opensource.org/licenses/ISC"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Common Information Model (CIM)
+  - id: 1621
+    version: "5.3.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"

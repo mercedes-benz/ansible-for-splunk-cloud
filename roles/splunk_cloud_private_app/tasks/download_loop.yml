@@ -1,0 +1,36 @@
+---
+- name: "Get app download url | {{ private_app_name }}"
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/{{ private_app_location.hostname }}{{ private_app_location.path }}/releases/tags/{{ private_app_version }}"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers: >-
+      {%- if private_app.api_token | default('') | length > 0 -%}
+        {"Authorization": "Bearer {{ private_app.api_token }}"}
+      {%- else -%}
+        {}
+      {%- endif -%}
+  register: app_download_data
+
+- name: "Download app | {{ private_app_name }}"
+  ansible.builtin.get_url:
+    url: "{{ app_download_data.json.assets[0].url }}"
+    mode: "644"
+    dest: "{{ splunk_cloud_private_app_folder }}"
+    headers: >-
+      {{ {'Authorization': 'Bearer ' + private_app.api_token, 'Accept': 'application/octet-stream'} 
+      if private_app.api_token | default('') | length > 0 
+      else {'Accept': 'application/octet-stream'} }}
+
+  register: app_download_file
+
+- name: "Extract app | {{ private_app_name }}"
+  ansible.builtin.unarchive:
+    src: "{{ app_download_file.dest }}"
+    dest: "{{ splunk_cloud_private_app_folder }}"
+
+- name: "Delete tarball | {{ private_app_name }}"
+  ansible.builtin.file:
+    path: "{{ app_download_file.dest }}"
+    state: absent

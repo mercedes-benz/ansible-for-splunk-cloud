@@ -1,4 +1,4 @@
-name: execute ansible playbook
+name: Execute ansible playbook
 on:
   workflow_call:
     inputs:
@@ -14,27 +14,40 @@ on:
         default: ""
     secrets:
       ANSIBLE_VAULT_PASSWORD:
-        required: true
-
+        required: false
+      SPLUNKBASE_USERNAME:
+        required: false
+      SPLUNKBASE_PASSWORD:
+        required: false
+      SPLUNK_TOKEN:
+        required: false
 jobs:
   ansible:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          architecture: "x64"
+          cache: "pip"
+      - name: "install ansible"
+        run: pip install -r requirements.txt
 
-    - uses: actions/setup-python@v4
-      with:
-       python-version: '3.x'
-       architecture: 'x64'
-       cache: 'pip'
-
-    - name: "install ansible"
-      run: pip install -r requirements.txt
-
-    - name: "run playbook"
-      run: |
-        echo '${{ secrets.ANSIBLE_VAULT_PASSWORD }}' > vault.txt
-        ansible-playbook -i ${{ inputs.ansible_inventory }} --vault-pass-file vault.txt ${{ inputs.ansible_playbook }} ${{ inputs.ansible_extra_args }}
-      env:
-        PY_COLORS: '1'
-        ANSIBLE_FORCE_COLOR: '1'
+      - name: "run playbook"
+        run: |
+          echo '${{ github.workflow }}'
+          echo '${{ secrets.ANSIBLE_VAULT_PASSWORD }}' > vault.txt
+          SPLUNK_TOKEN=${{ secrets.SPLUNK_TOKEN }} \
+          SPLUNKBASE_USERNAME=${{ secrets.SPLUNKBASE_USERNAME }} \
+          SPLUNKBASE_PASSWORD=${{ secrets.SPLUNKBASE_PASSWORD }} \
+          ansible-playbook -i ${{ inputs.ansible_inventory }} --vault-pass-file vault.txt ${{ inputs.ansible_playbook }} ${{ inputs.ansible_extra_args }}
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+      - name: Save Private app inspection reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: appinspect-report
+          path: reports/
+        if: github.workflow == 'deploy private apps'

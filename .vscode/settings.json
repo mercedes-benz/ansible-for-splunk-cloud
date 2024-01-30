@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.yml": "ansible",
+    ".github/workflows/*.yml": "yml"
+  },
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*"
+  },
+  "ansible.python.interpreterPath": "/usr/local/bin/python"
+}

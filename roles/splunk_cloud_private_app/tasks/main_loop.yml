@@ -1,12 +1,18 @@
 ---
-- ansible.builtin.import_tasks: "check.yml" 
+- name: "Check if app needs installing / updating | {{ splunk_cloud_app_name }}"
+  ansible.builtin.import_tasks: "check.yml"
 
-- ansible.builtin.import_tasks: "validate.yml"
+- name: "Validate app with AppInspect | {{ splunk_cloud_app_name }}"
+  ansible.builtin.import_tasks: "validate.yml"
   when: not f_splunk_cloud_app_exists or f_splunk_cloud_app_needs_update
 
-- ansible.builtin.import_tasks: "install.yml"
-  when: (not f_splunk_cloud_app_exists and f_splunk_validate_passed) or (f_splunk_cloud_app_exists and f_splunk_cloud_app_needs_update and f_splunk_validate_passed)
+- name: "Running app install tasks | {{ splunk_cloud_app_name }}"
+  ansible.builtin.import_tasks: "install.yml"
+  when: |
+    (not f_splunk_cloud_app_exists and f_splunk_validate_passed) or
+    (f_splunk_cloud_app_exists and f_splunk_cloud_app_needs_update and f_splunk_validate_passed)
 
-- debug:
+- name: "No app install/update required | {{ splunk_cloud_app_name }}"
+  ansible.builtin.debug:
     msg: "No changes for private app '{{ splunk_cloud_app_name }}' needed"
   when: f_splunk_cloud_app_exists and not f_splunk_cloud_app_needs_update

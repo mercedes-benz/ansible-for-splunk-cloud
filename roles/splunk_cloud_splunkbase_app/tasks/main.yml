@@ -17,7 +17,7 @@
 
 - name: List all splunkbase apps in splunk cloud environment
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=true&count=100"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=true&count=100"
     method: GET
     status_code: [200, 202]
     return_content: true
@@ -36,7 +36,7 @@
 
 - name: Uninstall splunkbase apps in the cloud which are not defined in the ansible inventory
   ansible.builtin.uri:
-    url: "https://admin.splunk.com/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item.name }}"
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria/{{ item.name }}"
     method: DELETE
     status_code: [200, 202]
     return_content: true

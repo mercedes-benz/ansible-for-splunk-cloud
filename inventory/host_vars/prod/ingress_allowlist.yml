@@ -1,0 +1,16 @@
+---
+splunk_cloud_ingress_allow_list:
+  # e.g. only allow the public company internet proxy to access you splunk cloud
+  # 1.1.1.1/32 is just a placeholder
+  search-ui:
+    - "0.0.0.0/0"
+
+  search-api:
+    - "0.0.0.0/0"
+  idm-api:
+    - "0.0.0.0/0"
+  s2s:
+    - "0.0.0.0/0"
+  hec:
+    - "0.0.0.0/0"
+    - "82.28.83.62/32"

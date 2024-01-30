@@ -1,5 +1,5 @@
 ---
-splunk_cloud_default_apps_list:
+splunk_cloud_private_app_default_apps_list:
   - "000-self-service"
   - "075-cloudworks"
   - "100-cloudworks-wlm"
