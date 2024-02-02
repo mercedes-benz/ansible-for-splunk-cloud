@@ -25,8 +25,8 @@ jobs:
   ansible:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           architecture: "x64"
@@ -41,12 +41,12 @@ jobs:
           SPLUNK_TOKEN=${{ secrets.SPLUNK_TOKEN }} \
           SPLUNKBASE_USERNAME=${{ secrets.SPLUNKBASE_USERNAME }} \
           SPLUNKBASE_PASSWORD=${{ secrets.SPLUNKBASE_PASSWORD }} \
-          ansible-playbook -i ${{ inputs.ansible_inventory }} --vault-pass-file vault.txt ${{ inputs.ansible_playbook }} ${{ inputs.ansible_extra_args }}
+          ansible-playbook -i ${{ inputs.ansible_inventory }}  -e "splunk_cloud_stack=${{ secrets.SPLUNKCLOUD_STACK }}" --vault-pass-file vault.txt ${{ inputs.ansible_playbook }} ${{ inputs.ansible_extra_args }}
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
       - name: Save Private app inspection reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: appinspect-report
           path: reports/
