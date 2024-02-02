@@ -6,4 +6,4 @@ private_app_list:
   - id: "splunk_app_scdeploy"
     url: "github://livehybrid/splunk_app_scdeploy"
     version: "v1.3.1"
-    api_token: "secrethere"
+    #api_token: "secrethere"
