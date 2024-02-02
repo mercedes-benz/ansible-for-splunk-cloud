@@ -21,6 +21,8 @@ on:
         required: false
       SPLUNK_TOKEN:
         required: false
+      SPLUNKCLOUD_STACK:
+        required: false
 jobs:
   ansible:
     runs-on: ubuntu-latest
