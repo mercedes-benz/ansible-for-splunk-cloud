@@ -1,2 +1,9 @@
-ansible==9.3.0
-jmespath==1.0.1
+# Requirements File
+
+## Description
+This file lists the Python packages required for the project.
+
+## Packages
+
+- ansible==9.3.0: Ansible is a powerful IT automation tool.
+- jmespath==1.0.1: JMESPath provides a query language for JSON data.
