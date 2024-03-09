@@ -1,6 +1,15 @@
 ---
-- name: Add/update/remove indexes in splunk cloud
+# Manage Splunk Cloud Indexes
+- name: Manage Splunk Cloud Indexes
+  # Set target hosts to Splunk Cloud
   hosts: splunkcloud
+  
+  # Disable unnecessary facts gathering for faster execution
   gather_facts: false
-  roles:
-    - splunk_cloud_index
+
+  # List of tasks to be executed
+  tasks:
+    # Include role to manage indexes
+    - name: Include role to manage Splunk Cloud indexes
+      include_role:
+        name: splunk_cloud_index
