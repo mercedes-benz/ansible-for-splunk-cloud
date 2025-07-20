@@ -1,0 +1,42 @@
+---
+- name: Convert inventory freezes to API format
+  ansible.builtin.set_fact:
+    api_freezes: "{{ api_freezes | default([]) + [api_freeze] }}"
+  vars:
+    api_freeze:
+      startDate: "{{ freeze.start_time | regex_replace('T.*', '') | regex_replace('-', '/') }}"
+      endDate: "{{ freeze.end_time | regex_replace('T.*', '') | regex_replace('-', '/') }}"
+      reason: "{{ freeze.reason | default('Customer requested freeze') }}"
+      appliesTo: "{{ freeze.applies_to | default('Splunk Initiated Changes Only') }}"
+  loop: "{{ splunk_cloud_change_freeze_requests | default([]) | selectattr('state', 'undefined') | list + splunk_cloud_change_freeze_requests | default([]) | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | list }}"
+  loop_control:
+    loop_var: freeze
+
+- name: Set final customer freezes list
+  ansible.builtin.set_fact:
+    final_customer_freezes: "{{ api_freezes | default([]) }}"
+
+- name: Write JSON body to temporary file
+  ansible.builtin.copy:
+    content: "{{ lookup('template', 'preferences.json.j2') }}"
+    dest: /tmp/maintenance_preferences.json
+  when: final_customer_freezes != (current_preferences.changeFreezes.customerInitiatedFreezes | default([]))
+
+- name: Update maintenance window preferences using curl
+  ansible.builtin.command: >
+    curl -X PUT
+    -H "Content-Type: application/json"
+    -H "Authorization: Bearer {{ splunk_cloud_token }}"
+    -d @/tmp/maintenance_preferences.json
+    "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/maintenance-windows/preferences"
+  register: r_update_preferences
+  when: final_customer_freezes != (current_preferences.changeFreezes.customerInitiatedFreezes | default([]))
+  changed_when: true
+  tags:
+    - splunk_cloud_update_preferences
+
+- name: Clean up temporary file
+  ansible.builtin.file:
+    path: /tmp/maintenance_preferences.json
+    state: absent
+  when: final_customer_freezes != (current_preferences.changeFreezes.customerInitiatedFreezes | default([]))

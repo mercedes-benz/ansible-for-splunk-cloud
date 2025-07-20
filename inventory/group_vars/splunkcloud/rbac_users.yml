@@ -1,0 +1,7 @@
+splunk_cloud_user_list:
+  - name: example_user
+    roles: [example_role]
+    state: present
+  - name: will1
+    roles: [sc_admin,example_role]
+    state: present

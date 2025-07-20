@@ -17,7 +17,11 @@
     f_splunk_cloud_index_needs_update: '{{
       (f_splunk_cloud_index_config.datatype != splunk_cloud_index_config.datatype) or
       (f_splunk_cloud_index_config.maxDataSizeMB | int != splunk_cloud_index_config.maxDataSizeMB | int) or
-      (f_splunk_cloud_index_config.searchableDays | int != splunk_cloud_index_config.searchableDays | int) }}'
+      (f_splunk_cloud_index_config.searchableDays | int != splunk_cloud_index_config.searchableDays | int) or
+      ("selfStorageBucketPath" not in f_splunk_cloud_index_config and splunk_cloud_index_config.selfStorageBucketPath!="") or 
+      ("selfStorageBucketPath" in f_splunk_cloud_index_config and f_splunk_cloud_index_config.selfStorageBucketPath != splunk_cloud_index_config.selfStorageBucketPath)
+    }}'
   when: f_splunk_cloud_index_exists
   tags:
     - splunk_cloud_list_index
+

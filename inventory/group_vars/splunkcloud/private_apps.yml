@@ -1,0 +1,21 @@
+---
+private_app_list: []
+
+#  - id: "TA-tesla-data"
+#    url: "github://livehybrid/TA-tesla-data"
+#    version: "v1.1.1"
+#  - id: "splunk_app_scdeploy"
+#    url: "github://livehybrid/splunk_app_scdeploy"
+#    version: "v1.3.1"
+#    api_token: "test-trigger"
+  
+
+#  - id: "myorg_assets_identities"
+#    url: "github://myorg/myorg_assets_identities"
+#    version: "v2024.12.6"
+#    api_token: "{{ lookup('env', 'MYORG_GITHUB_TOKEN') }}"
+#    # Specific list of lookups that we want to maintain as Source of truth within Git and upload to cloud
+#    lookups:
+#      - "lookup_permitted_net_traffic.csv"
+#      - "expected_splunk_users.csv"
+#      - "known_incorrect_overseas_ips.csv"

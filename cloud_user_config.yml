@@ -1,0 +1,5 @@
+---
+- name: Configure Splunk Cloud users
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_user 

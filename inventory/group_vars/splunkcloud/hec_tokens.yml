@@ -1,0 +1,6 @@
+splunk_cloud_hec_token_list:
+  - name: example_hec_token1
+    defaultIndex: main
+    allowedIndexes: 
+     - main
+    state: present

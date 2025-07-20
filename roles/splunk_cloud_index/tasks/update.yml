@@ -9,7 +9,17 @@
     headers:
       Content-Type: application/json
       Authorization: "Bearer {{ splunk_cloud_token }}"
-    body: '{"maxDataSizeMB": {{ splunk_cloud_index_config.maxDataSizeMB | int }}, "searchableDays": {{ splunk_cloud_index_config.searchableDays | int }} }'
+    body: >-
+      {{
+        {
+          "maxDataSizeMB": splunk_cloud_index_config.maxDataSizeMB | int,
+          "searchableDays": splunk_cloud_index_config.searchableDays | int
+        } 
+        | combine({"selfStorageBucketPath": splunk_cloud_index_config.selfStorageBucketPath} 
+          if splunk_cloud_index_config.selfStorageBucketPath is defined and splunk_cloud_index_config.selfStorageBucketPath | length > 0 else {})
+      }}
+  timeout: 90
+  retries: 3
   changed_when: true
   register: r_update_index
   tags:

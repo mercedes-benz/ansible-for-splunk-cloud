@@ -1,0 +1,31 @@
+---
+- name: List savedsearch stanzas | {{ splunk_cloud_app_name }}
+  shell: 
+    cmd: cat {{ splunk_cloud_app_path }}/default/savedsearches.conf | grep -E "^\[[^\[]+\]$" | rev | cut -c 2- | rev| cut  -c 2-
+  ignore_errors: yes
+  register: search_stanzas
+
+- name: Get relevant sections of savedsearches.conf file | {{ splunk_cloud_app_name}}
+  shell:
+    cmd: cat {{ splunk_cloud_app_path }}/default/savedsearches.conf | grep -E "^\[|disabled|enableSched|\#enableOnHost" | sed 's/\#enableOnHost/enableOnHost/'
+  ignore_errors: yes
+  register: search_file
+
+- name: Create temporary savedsearches file || {{splunk_cloud_app_name}}
+  ansible.builtin.tempfile:
+    state: file
+    suffix: temp
+  register: ss_tmp_file
+
+- name: Write to temporary savedsearches file || {{ splunk_cloud_app_name }}
+  ansible.builtin.copy:
+    content: "{{ search_file.stdout }}"
+    dest: "{{ ss_tmp_file.path }}"
+ 
+- name: "Loop over each savedsearch in the private app"
+  ansible.builtin.include_tasks: savedsearch_loop.yml
+  vars:
+    savedsearch_name: "{{ item }}"
+  loop: "{{ search_stanzas.stdout_lines }}"
+  tags:
+    - splunk_cloud_check_app

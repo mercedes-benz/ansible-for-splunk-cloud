@@ -1,5 +1,8 @@
 ---
 - name: Adjusting egress rule set in splunk cloud
-  hosts: splunkcloud
+  hosts: 
+    - splunkcloud
+    - '!es-*'
+    - '!itsi-*'
   roles:
     - splunk_cloud_egress_allow

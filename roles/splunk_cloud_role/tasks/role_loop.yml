@@ -1,0 +1,35 @@
+---
+- name: Check if role exists | {{ role.name }}
+  ansible.builtin.set_fact:
+    role_exists: "{{ role.name in (r_splunk_cloud_roles.json.roles | map(attribute='name')) }}"
+
+- name: Create role | {{ role.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/roles"
+    method: POST
+    body_format: json
+    status_code: [200, 201]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: "{{ role | to_json }}"
+  when: not role_exists and role.state != 'absent'
+
+- name: Update role | {{ role.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/roles/{{ role.name }}"
+    method: PATCH
+    body_format: json
+    status_code: [200]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: "{{ role | to_json }}"
+  when: role_exists and role.state != 'absent'
+
+- name: Delete role | {{ role.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/roles/{{ role.name }}"
+    method: DELETE
+    status_code: [200, 204]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  when: role_exists and role.state == 'absent' 

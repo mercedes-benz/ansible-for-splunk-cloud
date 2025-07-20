@@ -1,0 +1,120 @@
+---
+- name: Debug all HEC tokens
+  ansible.builtin.debug:
+    var: r_splunk_cloud_hec_tokens.json['http-event-collectors']
+
+- name: Debug token names for existence check
+  ansible.builtin.debug:
+    msg:
+      - "Checking for token name: {{ hec_token.name }}"
+      - "Existing token names: {{ r_splunk_cloud_hec_tokens.json['http-event-collectors'] | selectattr('spec', 'defined') | map(attribute='spec') | selectattr('name', 'defined') | map(attribute='name') | list }}"
+
+- name: Check if HEC token exists | {{ hec_token.name }}
+  ansible.builtin.set_fact:
+    hec_token_exists: >-
+      {{ hec_token.name in (
+        r_splunk_cloud_hec_tokens.json['http-event-collectors']
+        | selectattr('spec', 'defined')
+        | map(attribute='spec')
+        | selectattr('name', 'defined')
+        | map(attribute='name')
+        | list
+      ) }}
+
+- name: Set remote spec for existing HEC token | {{ hec_token.name }}
+  ansible.builtin.set_fact:
+    remote_spec: >-
+      {{ r_splunk_cloud_hec_tokens.json['http-event-collectors']
+      | selectattr('spec', 'defined')
+      | map(attribute='spec')
+      | selectattr('name', 'defined')
+      | selectattr('name', 'equalto', hec_token.name)
+      | list
+      | first
+      | default({}) }}
+  when: hec_token_exists
+
+- name: Set valid_indexes for HEC token validation
+  ansible.builtin.set_fact:
+    valid_indexes: "{{ r_splunk_cloud_indexes | map(attribute='name') | map('lower') | list }}"
+
+- block:
+    - name: Validate allowedIndexes for HEC token | {{ hec_token.name }}
+      ansible.builtin.fail:
+        msg: >-
+          The following indexes in allowedIndexes do not exist in Splunk Cloud: {{ missing_indexes }}.
+          Valid indexes are: {{ valid_indexes }}
+      vars:
+        missing_indexes: "{{ (hec_token.allowedIndexes | map('lower') | list) | difference(valid_indexes) }}"
+      when:
+        - hec_token.allowedIndexes is defined
+        - ((hec_token.allowedIndexes | map('lower') | list) | difference(valid_indexes)) | length > 0
+    - name: Set allowedIndexes_valid for HEC token | {{ hec_token.name }}
+      ansible.builtin.set_fact:
+        allowedIndexes_valid: true
+      when:
+        - hec_token.allowedIndexes is not defined or ((hec_token.allowedIndexes | map('lower') | list) | difference(valid_indexes)) | length == 0
+  always:
+    - name: Ensure allowedIndexes_valid is set for HEC token | {{ hec_token.name }}
+      ansible.builtin.set_fact:
+        allowedIndexes_valid: "{{ allowedIndexes_valid | default(false) }}"
+
+- name: Create HEC token | {{ hec_token.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/inputs/http-event-collectors"
+    method: POST
+    body_format: json
+    status_code: [200, 201, 202]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: >-
+      {{ { 'name': hec_token.name }
+      | combine( { 'allowedIndexes': hec_token.allowedIndexes } if hec_token.allowedIndexes is defined else {} )
+      | combine( { 'defaultHost': hec_token.defaultHost } if hec_token.defaultHost is defined else {} )
+      | combine( { 'defaultIndex': hec_token.defaultIndex } if hec_token.defaultIndex is defined else {} )
+      | combine( { 'defaultSource': hec_token.defaultSource } if hec_token.defaultSource is defined else {} )
+      | combine( { 'defaultSourcetype': hec_token.defaultSourcetype } if hec_token.defaultSourcetype is defined else {} )
+      | combine( { 'disabled': hec_token.disabled | bool } if hec_token.disabled is defined else {} )
+      | combine( { 'useAck': hec_token.useAck | bool } if hec_token.useAck is defined else {} )
+      | to_json }}
+  when: not hec_token_exists and hec_token.state != 'absent' and allowedIndexes_valid
+
+- name: Update HEC token | {{ hec_token.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/inputs/http-event-collectors/{{ hec_token.name }}"
+    method: PATCH
+    body_format: json
+    status_code: [200, 202]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: >-
+      {{ {}
+      | combine( { 'allowedIndexes': hec_token.allowedIndexes } if hec_token.allowedIndexes is defined else {} )
+      | combine( { 'defaultHost': hec_token.defaultHost } if hec_token.defaultHost is defined else {} )
+      | combine( { 'defaultIndex': hec_token.defaultIndex } if hec_token.defaultIndex is defined else {} )
+      | combine( { 'defaultSource': hec_token.defaultSource } if hec_token.defaultSource is defined else {} )
+      | combine( { 'defaultSourcetype': hec_token.defaultSourcetype } if hec_token.defaultSourcetype is defined else {} )
+      | combine( { 'disabled': hec_token.disabled | bool } if hec_token.disabled is defined else {} )
+      | combine( { 'useAck': hec_token.useAck | bool } if hec_token.useAck is defined else {} )
+      | to_json }}
+  when: >-
+    hec_token_exists and hec_token.state != 'absent' and allowedIndexes_valid and
+    remote_spec != {} and
+    (
+      remote_spec.allowedIndexes != hec_token.allowedIndexes | default([]) or
+      remote_spec.defaultHost != hec_token.defaultHost | default('') or
+      remote_spec.defaultIndex != hec_token.defaultIndex | default('') or
+      remote_spec.defaultSource != hec_token.defaultSource | default('') or
+      remote_spec.defaultSourcetype != hec_token.defaultSourcetype | default('') or
+      remote_spec.disabled != hec_token.disabled | default(false) or
+      remote_spec.useAck != hec_token.useAck | default(false)
+    )
+
+- name: Delete HEC token | {{ hec_token.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/inputs/http-event-collectors/{{ hec_token.name }}"
+    method: DELETE
+    status_code: [200, 204]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  when: hec_token_exists and hec_token.state == 'absent' 

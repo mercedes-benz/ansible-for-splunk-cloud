@@ -13,14 +13,18 @@
       {%- endif -%}
   register: app_download_data
 
+- name: "Debug"
+  ansible.builtin.debug:
+    msg: "{{ app_download_data.json }}"
+
 - name: "Download app | {{ private_app_name }}"
   ansible.builtin.get_url:
     url: "{{ app_download_data.json.assets[0].url }}"
     mode: "644"
     dest: "{{ splunk_cloud_private_app_folder }}"
     headers: >-
-      {{ {'Authorization': 'Bearer ' + private_app.api_token, 'Accept': 'application/octet-stream'} 
-      if private_app.api_token | default('') | length > 0 
+      {{ {'Authorization': 'Bearer ' + private_app.api_token, 'Accept': 'application/octet-stream'}
+      if private_app.api_token | default('') | length > 0
       else {'Accept': 'application/octet-stream'} }}
 
   register: app_download_file

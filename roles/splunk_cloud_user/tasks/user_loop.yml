@@ -1,0 +1,47 @@
+---
+- name: Check if user exists | {{ user.name }}
+  ansible.builtin.set_fact:
+    user_exists: "{{ user.name in (r_splunk_cloud_users.json.users | map(attribute='name')) }}"
+
+- name: Generate strong 10-digit password for new user | {{ user.name }}
+  ansible.builtin.set_fact:
+    generated_password: "{{ lookup('password', '/dev/null length=10') }}"
+  when: not user_exists and user.state != 'absent'
+
+- name: Create user | {{ user.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/users"
+    method: POST
+    body_format: json
+    status_code: [200, 201]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body: "{{ user | combine({'password': generated_password}) | to_json }}"
+  when: not user_exists and user.state != 'absent'
+  register: r_create_user
+
+- name: Output generated password | {{ user.name }}
+  ansible.builtin.debug:
+    msg: "User {{ user.name }} created with password: {{ generated_password }}"
+  when: not user_exists and user.state != 'absent'
+
+- name: Update user | {{ user.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/users/{{ user.name }}"
+    method: PATCH
+    body_format: json
+    status_code: [200]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+      Federated-Search-Manage-Ack: "Y"
+    body: "{{ user | to_json }}"
+  when: user_exists and user.state != 'absent'
+
+- name: Delete user | {{ user.name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/users/{{ user.name }}"
+    method: DELETE
+    status_code: [200, 204]
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  when: user_exists and user.state == 'absent' 

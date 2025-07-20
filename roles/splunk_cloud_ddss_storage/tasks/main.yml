@@ -1,0 +1,38 @@
+---
+- name: List all DDSS self storage locations
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/cloud-resources/self-storage-locations/buckets"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_list_ddss_storage
+  tags:
+    - splunk_cloud_list_ddss_storage
+
+- name: Loop over each DDSS storage location
+  ansible.builtin.include_tasks: storage_loop.yml
+  vars:
+    ddss_storage_location: "{{ storage }}"
+  loop: "{{ splunk_cloud_ddss_storage_list | default([]) }}"
+  loop_control:
+    loop_var: "storage"
+    label: "{{ storage.title }}"
+
+- name: Remove DDSS storage locations not in inventory
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/cloud-resources/self-storage-locations/buckets/{{ item }}"
+    method: DELETE
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  changed_when: true
+  vars:
+    inventory_storage: "{{ (splunk_cloud_ddss_storage_list | default([])) | map(attribute='title') }}"
+  loop: "{{ (r_list_ddss_storage.json.buckets | default([]) | map(attribute='title')) | difference(inventory_storage) }}"
+  tags:
+    - splunk_cloud_remove_ddss_storage

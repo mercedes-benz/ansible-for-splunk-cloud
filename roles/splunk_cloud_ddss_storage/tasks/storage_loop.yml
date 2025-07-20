@@ -1,0 +1,55 @@
+---
+- name: Check if DDSS storage location exists
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/cloud-resources/self-storage-locations/buckets/{{ ddss_storage_location.title }}"
+    method: GET
+    status_code: [200, 404]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_check_ddss_storage
+  tags:
+    - splunk_cloud_check_ddss_storage
+
+- name: Create DDSS storage location
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/cloud-resources/self-storage-locations/buckets"
+    method: POST
+    status_code: [200, 201, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body_format: json
+    body:
+      title: "{{ ddss_storage_location.title }}"
+      bucketName: "{{ ddss_storage_location.bucket_name }}"
+      folder: "{{ ddss_storage_location.folder | default('') }}"
+      description: "{{ ddss_storage_location.description | default('') }}"
+  register: r_create_ddss_storage
+  when: r_check_ddss_storage.status == 404
+  changed_when: true
+  tags:
+    - splunk_cloud_create_ddss_storage
+
+- name: Update DDSS storage location
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/cloud-resources/self-storage-locations/buckets/{{ ddss_storage_location.title }}"
+    method: PUT
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body_format: json
+    body:
+      title: "{{ ddss_storage_location.title }}"
+      bucketName: "{{ ddss_storage_location.bucket_name }}"
+      folder: "{{ ddss_storage_location.folder | default('') }}"
+      description: "{{ ddss_storage_location.description | default('') }}"
+  register: r_update_ddss_storage
+  when: r_check_ddss_storage.status == 200
+  changed_when: true
+  tags:
+    - splunk_cloud_update_ddss_storage

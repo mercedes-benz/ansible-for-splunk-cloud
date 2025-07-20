@@ -1,0 +1,14 @@
+---
+# DDSS Self Storage Locations Configuration
+# Example configuration for managing DDSS self storage locations
+# NOTE: bucket_name must have the deployment prefix - check the error message for the exact prefix required
+
+splunk_cloud_ddss_storage_list: []
+  # - title: "primary-s3-storage"
+  #   bucket_name: "scde-t2eld9k30jvr98hfq-jtmwnu96pbl3-my-company-ddss-primary"
+  #   folder: "archived-data"
+  #   description: "Primary S3 storage location for DDSS archive data"
+  # - title: "secondary-gcs-storage"
+  #   bucket_name: "scde-t2eld9k30jvr98hfq-jtmwnu96pbl3-my-company-ddss-secondary"
+  #   folder: "backup-data"
+  #   description: "Secondary GCS storage location for DDSS backup data"

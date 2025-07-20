@@ -1,0 +1,14 @@
+---
+# Download local apps
+- name: Download local apps
+  loop: "{{ private_app_list | default([]) }}"
+  loop_control:
+    label: "{{ private_app.id }}"
+    loop_var: "private_app"
+  ansible.builtin.include_tasks: app_loop.yml
+  when: private_app.lookups is defined and private_app.lookups | length > 0
+  vars:
+    private_app_name: "{{ private_app.id }}"
+    private_app_location: "{{ private_app.url | urlsplit }}"
+    private_app_version: "{{ private_app.version }}"
+    private_app: "{{ private_app }}"

@@ -4,7 +4,7 @@
     url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/apps/victoria?splunkbase=true"
     method: POST
     body_format: form-urlencoded
-    status_code: [200, 202]
+    status_code: [200, 202, 400]
     return_content: true
     headers:
       Content-Type: "application/x-www-form-urlencoded"
@@ -14,7 +14,15 @@
     body:
       splunkbaseID: "{{ splunkbase_app.id }}"
       version: "{{ splunkbase_app.version }}"
-  changed_when: r_install_app.json.status == "processing"
   register: r_install_app
+  changed_when: r_install_app.json.status == "processing"
+  failed_when: >-
+    r_install_app.status not in [200, 202, 400] or
+    (r_install_app.status == 400 and (r_install_app.json.message is not defined or 'not self-service installable' not in r_install_app.json.message))
   tags:
     - splunkbase_install_app
+
+- name: Warn if app is not self-service installable | {{ splunkbase_app.id }}
+  ansible.builtin.debug:
+    msg: "App {{ splunkbase_app.id }} is not self-service installable and was skipped. See https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ACSerrormessages for details."
+  when: r_install_app.status == 400 and r_install_app.json.message is defined and 'not self-service installable' in r_install_app.json.message

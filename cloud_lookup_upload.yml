@@ -1,0 +1,11 @@
+---
+- name: Override lookups on Splunk Cloud with private app version
+  hosts:
+    - splunkcloud
+  roles:
+    - splunk_cloud_lookup_upload
+  module_defaults:
+    ansible.builtin.get_url:
+      validate_certs: false
+    ansible.builtin.uri:
+      validate_certs: false

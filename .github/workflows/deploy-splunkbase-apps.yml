@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "inventory/host_vars/*/splunkbase_apps.yml"
+      - "inventory/group_vars/*/splunkbase_apps.yml"
 
 concurrency:
   group: ${{ github.workflow }}

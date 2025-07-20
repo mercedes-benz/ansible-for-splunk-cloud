@@ -1,0 +1,31 @@
+---
+# Download local apps
+- name: Download local apps
+  run_once: true
+  loop: "{{ private_app_list | default([]) }}"
+  loop_control:
+    label: "{{ private_app.id }}"
+    loop_var: "private_app"
+  ansible.builtin.include_tasks: download_loop.yml
+  vars:
+    private_app_name: "{{ private_app.id }}"
+    private_app_location: "{{ private_app.url | urlsplit }}"
+    private_app_version: "{{ private_app.version }}"
+    private_app: "{{ private_app }}"
+
+- name: List all local apps
+  run_once: true
+  ansible.builtin.find:
+    paths: "{{ splunk_cloud_private_app_folder }}"
+    file_type: directory
+  register: r_local_apps
+
+- name: "Loop over each private app"
+  ansible.builtin.include_tasks: app_loop.yml
+  vars:
+    splunk_cloud_app_name: "{{ private_app.path | basename }}"
+    splunk_cloud_app_path: "{{ private_app.path }}"
+  loop: "{{ r_local_apps.files }}"
+  loop_control:
+    loop_var: "private_app"
+    label: "{{ private_app.path }}"

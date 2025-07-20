@@ -1,0 +1,62 @@
+---
+- name: "Debug | {{ private_app_name }} / {{ lookup_file }}"
+  ansible.builtin.debug:
+    msg: "Upload {{ lookup_file }} to {{ private_app_name }}"
+
+- name: Read lookup file
+  ansible.builtin.slurp:
+    src: "apps/{{private_app_name}}/lookups/{{ lookup_file }}"
+  register: lookup_file_obj
+
+- name: Decode and clean CSV content
+  ansible.builtin.set_fact:
+    decoded_content: >-
+      {{
+        lookup_file_obj.content | b64decode | regex_replace('…', '...')
+        | regex_replace('\t', '  ') | regex_replace('\0', '') 
+        
+      }}
+#| regex_replace('\r\n', '\\r\\n') | regex_replace('\n', '\\n')
+- name: Convert CSV content to JSON
+  ansible.builtin.command: python3 -c "import csv, json, sys; print(json.dumps(list(csv.reader(sys.stdin))))" stdin="{{ decoded_content }}"
+  register: csv_json
+  changed_when: false
+
+# - name: Print CSV Content
+#   ansible.builtin.fail:
+#     msg: "{{ csv_json.stdout | string }}"
+
+- name: Upload lookup file to Splunk
+  ansible.builtin.uri:
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/servicesNS/nobody/{{ private_app_name }}/data/lookup_edit/lookup_contents"
+    method: POST
+    body_format: form-urlencoded
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body:
+      contents: "{{ csv_json.stdout | string }}"
+      output_mode: "json"
+      namespace: "{{ private_app_name }}"
+      lookup_file: "{{ lookup_file }}"
+    status_code: 200
+  register: upload_results
+
+- name: Sleep between requests
+  ansible.builtin.pause:
+    seconds: "{{ sleep_delay }}"
+  when: sleep_delay is defined and sleep_delay > 0
+
+- name: "Set ACL for lookup files"
+  ansible.builtin.uri:
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/servicesNS/nobody/{{ private_app_name }}/data/lookup-table-files/{{ item.item }}/acl"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ splunk_token }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body:
+      owner: "nobody"
+      sharing: "app"
+      app: "{{ private_app_name }}"
+      output_mode: "json"
+    status_code: 200
+  when: upload_results == 200

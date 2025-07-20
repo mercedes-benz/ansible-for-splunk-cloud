@@ -1,0 +1,17 @@
+---
+# Limits.conf Configuration
+# Example configuration for managing limits.conf stanza settings
+
+splunk_cloud_limits_conf_stanzas:
+  - name: "join"
+    settings:
+      subsearch_maxout: 100000
+      subsearch_maxtime: 60
+  # - name: "search"
+  #   settings:
+  #     max_searches_per_cpu: 1
+  #     max_realtime_searches: 10
+  # - name: "subsearch"
+  #   settings:
+  #     maxout: 10000
+  #     maxtime: 60

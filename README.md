@@ -13,6 +13,27 @@
 5. Use GitHub repositiory secrets to store the ansible-vault password in the `ANSIBLE_VAULT_PASSWORD` variable (this is needed so the workflows can decrypt the variables when running the playbooks).
 6. Adjust the config files to trigger the workflows/ansible playbooks.
 
+### run all playbooks at once (full deployment)
+
+You can run all main playbooks in sequence using the master playbook:
+
+```bash
+ansible-playbook -i inventory --ask-vault-password cloud_full_deploy.yml
+```
+
+This will execute all the main deployment runbooks in order, including:
+- HEC token configuration
+- Role and user management
+- Splunkbase app installation
+- Ingress/egress allowlist configuration
+- Index configuration
+- Private app installation
+- DDSS storage location setup
+- Limits.conf configuration
+- Maintenance window management
+
+Edit `cloud_full_deploy.yml` to add or remove playbooks as needed.
+
 ### create/update/delete an index
 
 ```bash
@@ -105,6 +126,148 @@ splunk_cloud_egress_allow_list:
       - "1.1.1.1/32" # some public endpoint you need to access from splunk cloud
       - "8.8.8.8/32" # some public endpoint you need to access from splunk cloud
 ```
+
+### Manage Splunk Cloud Roles
+
+Configure roles in `inventory/group_vars/splunkcloud/vars.yml`:
+
+```yaml
+splunk_cloud_role_list:
+  - name: example_role
+    capabilities: [list_all_objects, edit_user]
+    state: present
+```
+
+Run:
+
+```bash
+ansible-playbook -i inventory cloud_role_config.yml
+```
+
+### Manage Splunk Cloud Users
+
+Configure users in `inventory/group_vars/splunkcloud/vars.yml`:
+
+```yaml
+splunk_cloud_user_list:
+  - name: example_user
+    roles: [example_role]
+    state: present
+```
+
+Run:
+
+```bash
+ansible-playbook -i inventory cloud_user_config.yml
+```
+
+Note: On user creation, a strong 10-digit password is generated and outputted.
+
+### Manage Splunk Cloud HEC Tokens
+
+Configure HEC tokens in `inventory/group_vars/splunkcloud/vars.yml`:
+
+```yaml
+splunk_cloud_hec_token_list:
+  - name: example_hec_token
+    indexes: [main]
+    state: present
+```
+
+Run:
+
+```bash
+ansible-playbook -i inventory cloud_hec_token_config.yml
+```
+
+### Manage DDSS Self Storage Locations
+
+Configure DDSS (Dynamic Data Self-Storage) locations in `inventory/group_vars/splunkcloud/ddss_storage.yml`:
+
+```yaml
+splunk_cloud_ddss_storage_list:
+  - title: "primary-s3-storage"
+    bucket_name: "your-deployment-prefix-my-company-ddss-primary"
+    folder: "archived-data"
+    description: "Primary S3 storage location for DDSS archive data"
+  - title: "secondary-gcs-storage"
+    bucket_name: "your-deployment-prefix-my-company-ddss-secondary"
+    folder: "backup-data"
+    description: "Secondary GCS storage location for DDSS backup data"
+```
+
+**Important**: The `bucket_name` must include your deployment-specific prefix. Check the error message from your first run to get the exact prefix required (e.g., `scde-xxxxx-yyyyy-`).
+
+Run:
+
+```bash
+ansible-playbook -i inventory --ask-vault-password cloud_ddss_storage.yml
+
+# only create/update DDSS storage locations without removing anything
+ansible-playbook -i inventory --ask-vault-password cloud_ddss_storage.yml --skip-tags splunk_cloud_remove_ddss_storage
+```
+
+### Manage limits.conf Configurations
+
+Configure limits.conf stanza settings in `inventory/group_vars/splunkcloud/limits_conf.yml`:
+
+```yaml
+splunk_cloud_limits_conf_stanzas:
+  - name: "join"
+    settings:
+      subsearch_maxout: 100000
+      subsearch_maxtime: 60
+  - name: "search"
+    settings:
+      max_searches_per_cpu: 1
+      max_realtime_searches: 10
+  - name: "subsearch"
+    settings:
+      maxout: 10000
+      maxtime: 60
+```
+
+Run:
+
+```bash
+ansible-playbook -i inventory --ask-vault-password cloud_limits_conf.yml
+```
+
+**Note**: Changing limits.conf settings can affect the performance of your Splunk Cloud Platform deployment. All settings are automatically reloaded after updates.
+
+### Manage Maintenance Windows and Change Freeze Requests
+
+Configure change freeze requests in `inventory/group_vars/splunkcloud/maintenance_window.yml`:
+
+```yaml
+splunk_cloud_change_freeze_requests:
+  - name: "holiday-freeze-2024"
+    start_time: "2025-12-20T00:00:00Z"
+    end_time: "2026-01-05T23:59:59Z"
+    reason: "Holiday change freeze period"
+    applies_to: "Splunk Initiated Changes Only"
+    state: present
+  - name: "emergency-freeze"
+    start_time: "2025-08-15T00:00:00Z"
+    end_time: "2025-08-20T23:59:59Z"
+    reason: "Emergency maintenance freeze"
+    applies_to: "Splunk Initiated Changes Only"
+    state: present
+  - name: "old-freeze-to-remove"
+    state: absent
+```
+
+Run:
+
+```bash
+ansible-playbook -i inventory --ask-vault-password cloud_maintenance_window.yml
+```
+
+**Important Notes**:
+- Change freeze requests have a maximum of three months per calendar year
+- Emergency Maintenance and Security & Platform Maintenance are not eligible for change freezes
+- The `applies_to` field typically should be set to "Splunk Initiated Changes Only"
+- Use `state: absent` to remove existing change freeze requests
 
 ## Contributing
 

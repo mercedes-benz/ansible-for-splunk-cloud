@@ -1,6 +1,9 @@
 ---
 - name: Install/update/remove splunkbase apps in splunk cloud
-  hosts: splunkcloud
+  hosts: 
+    - splunkcloud
+    - '!es-*'
+    - '!itsi-*'
   roles:
     - splunk_cloud_splunkbase_app
     - splunk_cloud_restart

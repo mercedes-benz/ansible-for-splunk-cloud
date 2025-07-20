@@ -1,0 +1,54 @@
+---
+- name: List all Splunk Cloud HEC tokens (paginated)
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/inputs/http-event-collectors?offset={{ item }}&count=100"
+    method: GET
+    status_code: [200]
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  with_sequence: start=0 end="{{ splunk_cloud_max_hec_tokens | default(100) }}" stride=100
+  register: r_list_hec_tokens
+  tags:
+    - splunk_cloud_list_hec_tokens
+
+- name: Aggregate all HEC tokens into a single list
+  ansible.builtin.set_fact:
+    all_hec_tokens: >-
+      {{ r_list_hec_tokens.results | map(attribute='json') | map(attribute='http-event-collectors') | select('defined') | select('!=', None) | sum(start=[]) | list }}
+
+- name: Debug aggregated HEC tokens
+  ansible.builtin.debug:
+    var: all_hec_tokens
+
+- name: Prepare HEC tokens fact for downstream tasks
+  ansible.builtin.set_fact:
+    r_splunk_cloud_hec_tokens:
+      json:
+        http-event-collectors: "{{ all_hec_tokens }}"
+
+# --- FIXED INDEX PAGINATION LOGIC BELOW ---
+- name: List all Splunk Cloud indexes (paginated for HEC validation)
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/indexes?offset={{ item }}&count=100"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  with_sequence: start=0 end="{{ splunk_cloud_max_index | default(200) }}" stride=100
+  register: r_list_indexes
+  tags:
+    - splunk_cloud_list_index
+
+- name: Aggregate all Splunk Cloud indexes for HEC validation
+  ansible.builtin.set_fact:
+    r_splunk_cloud_indexes: >-
+      {{ r_list_indexes.results | map(attribute='json') | select('defined') | select('!=', None) | sum(start=[]) | list }}
+
+- name: Manage HEC tokens
+  ansible.builtin.include_tasks: hec_loop.yml
+  loop: "{{ splunk_cloud_hec_token_list }}"
+  loop_control:
+    loop_var: "hec_token" 

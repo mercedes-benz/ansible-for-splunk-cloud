@@ -1,0 +1,7 @@
+splunk_cloud_role_list:
+  - name: example_role
+    capabilities: [list_all_objects]
+    state: present
+  - name: example_role2
+    capabilities: [admin_all_objects]
+    state: present

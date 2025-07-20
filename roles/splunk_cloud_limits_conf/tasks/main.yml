@@ -1,0 +1,22 @@
+---
+- name: List all limits.conf settings
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/limits"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_list_limits
+  tags:
+    - splunk_cloud_list_limits
+
+- name: Loop over each limits.conf stanza
+  ansible.builtin.include_tasks: limits_loop.yml
+  vars:
+    limits_stanza: "{{ stanza }}"
+  loop: "{{ splunk_cloud_limits_conf_stanzas | default([]) }}"
+  loop_control:
+    loop_var: "stanza"
+    label: "{{ stanza.name }}"

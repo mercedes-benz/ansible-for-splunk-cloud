@@ -1,0 +1,15 @@
+---
+- import_playbook: cloud_maintenance_window.yml
+- import_playbook: cloud_limits_conf.yml
+- import_playbook: cloud_ddss_storage.yml
+- import_playbook: cloud_hec_token_config.yml
+- import_playbook: cloud_role_config.yml
+- import_playbook: cloud_user_config.yml
+- import_playbook: cloud_splunkbaseapp_install.yml
+- import_playbook: cloud_ingress_allow.yml
+- import_playbook: cloud_egress_allow.yml
+- import_playbook: cloud_index_config.yml
+- import_playbook: cloud_privateapp_install.yml
+- import_playbook: cloud_ddss_storage.yml
+- import_playbook: cloud_limits_conf.yml
+- import_playbook: cloud_maintenance_window.yml

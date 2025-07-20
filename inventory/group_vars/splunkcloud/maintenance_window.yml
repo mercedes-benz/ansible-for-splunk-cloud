@@ -1,0 +1,19 @@
+---
+# Maintenance Window and Change Freeze Configuration
+# Example configuration for managing change freeze requests
+
+splunk_cloud_change_freeze_requests:
+  - name: "test-freeze-2024"
+    start_time: "2025-12-20T00:00:00Z"
+    end_time: "2026-01-04T23:59:59Z"
+    reason: "Test change freeze period"
+    applies_to: "Splunk Initiated Changes Only"
+    state: present
+  # - name: "emergency-freeze"
+  #   start_time: "2025-08-15T00:00:00Z"
+  #   end_time: "2025-08-20T23:59:59Z"
+  #   reason: "Emergency maintenance freeze"
+  #   applies_to: "Splunk Initiated Changes Only"
+  #   state: present
+  # - name: "old-freeze-to-remove"
+  #   state: absent

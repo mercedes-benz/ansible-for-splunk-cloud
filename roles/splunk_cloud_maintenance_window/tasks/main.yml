@@ -1,0 +1,32 @@
+---
+- name: Get current maintenance window preferences
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/maintenance-windows/preferences"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_get_preferences
+  tags:
+    - splunk_cloud_get_preferences
+
+- name: List maintenance window schedules
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/maintenance-windows/schedules"
+    method: GET
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_list_schedules
+  tags:
+    - splunk_cloud_list_schedules
+
+- name: Process all change freeze requests
+  ansible.builtin.include_tasks: process_all_freezes.yml
+  vars:
+    current_preferences: "{{ r_get_preferences.json }}"
+    record_version: "{{ r_get_preferences.json.recordVersion }}"

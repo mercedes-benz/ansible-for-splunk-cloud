@@ -1,0 +1,5 @@
+---
+- name: Configure Splunk Cloud roles
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_role 

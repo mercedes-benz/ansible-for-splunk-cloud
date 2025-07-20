@@ -1,0 +1,5 @@
+---
+- name: Configure Splunk Cloud HEC tokens
+  hosts: splunkcloud
+  roles:
+    - splunk_cloud_hec_token 

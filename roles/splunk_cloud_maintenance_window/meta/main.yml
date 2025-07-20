@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  author: Will Searle
+  description: Manage maintenance windows and change freeze requests in Splunk Cloud Platform
+  company: LiveHybrid Ltd
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: GenericUNIX
+      versions:
+        - all
+    - name: GenericLinux
+      versions:
+        - all
+    - name: MacOSX
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Windows
+      versions:
+        - all
+  galaxy_tags:
+    - splunk
+    - cloud
+    - maintenance
+    - change_freeze
+dependencies: []

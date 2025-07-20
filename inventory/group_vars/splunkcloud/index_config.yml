@@ -1,0 +1,110 @@
+---
+splunk_cloud_index_list:
+  - name: "audit_summary"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  # Behaviour Analytics eval index for internal Splunk app use
+  - name: "ba_test"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "cim_modactions"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "endpoint_summary"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "gia_summary"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "history"
+    searchableDays: 7
+    maxDataSizeMB: 0
+  - name: "ioc"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  # - name: "lastchanceindex"
+  #   searchableDays: 30
+  #   maxDataSizeMB: 0
+  # - name: "main"
+  #   searchableDays: 180
+  #   maxDataSizeMB: 0
+  - name: "mc_artifacts"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "mc_aux_incidents"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "mc_events"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "notable"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "notable_summary"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "phantom_action_run"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "phantom_playbook_run"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "risk"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "sequenced_events"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "splunklogger"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "summary"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "threat_activity"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "ubaroute"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "ueba"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+  - name: "whois"
+    searchableDays: 1095
+    maxDataSizeMB: 0
+
+  # MyCompany.com Specific index definitions
+  - name: "common_azure"
+    searchableDays: 180
+    maxDataSizeMB: 0
+
+  - name: "common_paloalto_netfw"
+    searchableDays: 30
+    maxDataSizeMB: 0
+
+  - name: "common_paloalto_netops"
+    searchableDays: 30
+    maxDataSizeMB: 0
+
+  - name: "common_paloalto_netproxy"
+    searchableDays: 30
+    maxDataSizeMB: 0
+
+  - name: "common_servicenow"
+    searchableDays: 180
+    maxDataSizeMB: 0
+
+  - name: "common_jira"
+    searchableDays: 30
+    maxDataSizeMB: 0
+
+  - name: "common_github"
+    searchableDays: 180
+    maxDataSizeMB: 0
+
+
+#  - name: "archive_common_threat"
+#    searchableDays: 7
+#    maxDataSizeMB: 0
+#    selfStorageBucketPath: "s3://scde-t2eld9k30jvr98hfq-archive/ddss"

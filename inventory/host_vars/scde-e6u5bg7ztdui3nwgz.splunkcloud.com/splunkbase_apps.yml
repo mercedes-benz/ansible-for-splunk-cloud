@@ -15,7 +15,7 @@ splunkbase_app_list:
   #     read: "*"
   #     write: "sc_admin,power"
   - id: 6731 # Splunk Cloud Deployment Manager
-    version: "1.2.0"
+    version: "2024.12.24+8c6acd5"
     license: "https://cdn.splunkbase.splunk.com/static/misc/eula.html"
     permissions:
       sharing: "global"

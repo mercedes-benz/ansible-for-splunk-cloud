@@ -1,0 +1,16 @@
+---
+- name: List all Splunk Cloud roles
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/roles"
+    method: GET
+    status_code: [200]
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_splunk_cloud_roles
+
+- name: Manage roles
+  ansible.builtin.include_tasks: role_loop.yml
+  loop: "{{ splunk_cloud_role_list }}"
+  loop_control:
+    loop_var: "role" 

@@ -1,0 +1,5 @@
+---
+splunk_cloud_egress_allow_list:
+  - port: 8089
+    subnets:
+      - "0.0.0.0/0"

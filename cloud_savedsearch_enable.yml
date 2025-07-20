@@ -1,0 +1,11 @@
+---
+- name: Install/update/remove private apps in splunk cloud
+  hosts:
+    - splunkcloud
+  roles:
+    - splunk_cloud_savedsearch_enable
+  module_defaults:
+    ansible.builtin.get_url:
+      validate_certs: false
+    ansible.builtin.uri:
+      validate_certs: false

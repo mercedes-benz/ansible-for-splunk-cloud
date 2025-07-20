@@ -3,14 +3,23 @@
   ansible.builtin.set_fact:
     splunk_cloud_index_config: "{{ splunk_cloud_index_config | default({}) | combine({item.key: item.value}) }}"
   with_items:
-    - { key: 'name', value: "{{ splunk_cloud_index.name }}" }
-    - { key: 'datatype', value: "{{ splunk_cloud_index.datatype | default(splunk_cloud_default_datatype) }}" }
-    - { key: 'maxDataSizeMB', value: "{{ splunk_cloud_index.maxDataSizeMB | default(splunk_cloud_default_maxDataSizeMB) }}" }
-    - { key: 'searchableDays', value: "{{ splunk_cloud_index.searchableDays | default(splunk_cloud_default_searchableDays) }}" }
+    - { key: "name", value: "{{ splunk_cloud_index.name }}" }
+    - { key: "datatype", value: "{{ splunk_cloud_index.datatype | default(splunk_cloud_default_datatype) }}" }
+    - { key: "maxDataSizeMB", value: "{{ splunk_cloud_index.maxDataSizeMB | default(splunk_cloud_default_maxDataSizeMB) }}" }
+    - { key: "searchableDays", value: "{{ splunk_cloud_index.searchableDays | default(splunk_cloud_default_searchableDays) }}" }
+    - { key: "selfStorageBucketPath", value: "{{ splunk_cloud_index.selfStorageBucketPath | default('') }}" }
   tags:
     - always
 
 - ansible.builtin.import_tasks: "check.yml"
+
+# - ansible.builtin.debug:
+#     msg: "Debug '{{ splunk_cloud_index_config }}'"
+#   when: f_splunk_cloud_index_exists and f_splunk_cloud_index_needs_update
+
+- ansible.builtin.debug:
+    msg: "Changes required for index '{{ splunk_cloud_index_config.name }}'"
+  when: f_splunk_cloud_index_exists and f_splunk_cloud_index_needs_update
 
 - ansible.builtin.import_tasks: "create.yml"
   when: not f_splunk_cloud_index_exists

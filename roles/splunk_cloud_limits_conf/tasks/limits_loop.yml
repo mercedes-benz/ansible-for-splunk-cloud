@@ -1,0 +1,45 @@
+---
+- name: Get current limits.conf stanza settings
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/limits/{{ limits_stanza.name }}"
+    method: GET
+    status_code: [200, 404]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_get_limits_stanza
+  tags:
+    - splunk_cloud_get_limits_stanza
+
+- name: Update limits.conf stanza settings
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/limits/{{ limits_stanza.name }}"
+    method: POST
+    status_code: [200, 202]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+    body_format: json
+    body:
+      settings: "{{ limits_stanza.settings }}"
+  register: r_update_limits_stanza
+  when: r_get_limits_stanza.status == 200
+  changed_when: true
+  tags:
+    - splunk_cloud_update_limits_stanza
+
+- name: Verify limits.conf update
+  ansible.builtin.uri:
+    url: "https://{{ splunk_acs_domain }}/{{ splunk_cloud_stack }}/adminconfig/v2/limits/{{ limits_stanza.name }}"
+    method: GET
+    status_code: [200]
+    return_content: true
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_verify_limits_update
+  when: r_update_limits_stanza is changed
+  tags:
+    - splunk_cloud_verify_limits_update

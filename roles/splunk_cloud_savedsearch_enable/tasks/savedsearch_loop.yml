@@ -1,0 +1,67 @@
+---
+- name: "Check if already enabled in cloud | {{ splunk_cloud_app_name }} / {{ savedsearch_name }}"
+  ansible.builtin.uri:
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/servicesNS/nobody/{{ splunk_cloud_app_name }}/saved/searches/{{ item | urlencode | replace('/', '%2f') }}?output_mode=json"
+    method: GET
+    body_format: form-urlencoded
+    return_content: true
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_get_saved_search
+  until: r_get_saved_search.status == 200
+  retries: 5
+  delay: 5
+  tags:
+    - splunk_cloud_check_app
+
+- name: Debug | {{ splunk_cloud_app_name }} / {{ savedsearch_name }}
+  ansible.builtin.debug:
+    msg: "{{ lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path) | default('unknown') }}"
+- name: Debug | {{ splunk_cloud_app_name }} / {{ savedsearch_name }}
+  ansible.builtin.debug:
+    msg: 
+     - "Current cloud status - disabled: {{ r_get_saved_search.json.entry[0].content.disabled }}"
+     - "Config file enableOnHost: {{ lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path).split(',') }}"
+     - "Needs Enabling? {{ 'Yes' if splunk_cloud_stack in (lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path) | default('unknown')).split(',') and  r_get_saved_search.json.entry[0].content.disabled | lower | trim in ('1', 'true') else 'No'}}"
+     - "Needs Disabling? {{ 'Yes' if splunk_cloud_stack not in (lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path) | default('unknown')).split(',') and  r_get_saved_search.json.entry[0].content.disabled | lower | trim not in ('1', 'true') else 'No'}}"
+  tags:
+    - splunk_cloud_check_app
+
+- name: Enable savedsearches | {{ splunk_cloud_app_name }} / {{ savedsearch_name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/servicesNS/nobody/{{ splunk_cloud_app_name }}/saved/searches/{{ savedsearch_name | urlencode | replace('/', '%2f') }}/enable"
+    method: POST
+    body_format: form-urlencoded
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_update_saved_search
+  until: r_update_saved_search.status == 200
+  when: 
+   - splunk_cloud_stack in (lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path) | default("unknown")).split(",") and 
+     r_get_saved_search.json.entry[0].content.disabled | lower | trim in ("1", "true") 
+  retries: 5
+  delay: 5
+  tags:
+    - splunk_cloud_check_app
+
+- name: Disable savedsearches | {{ splunk_cloud_app_name }} / {{ savedsearch_name }}
+  ansible.builtin.uri:
+    url: "https://{{ splunk_cloud_stack }}.{{ splunk_cloud_domain }}:8089/servicesNS/nobody/{{ splunk_cloud_app_name }}/saved/searches/{{ savedsearch_name | urlencode | replace('/', '%2f') }}/disable"
+    method: POST
+    body_format: form-urlencoded
+    headers:
+      Authorization: "Bearer {{ splunk_cloud_token }}"
+  register: r_update_saved_search
+  until: r_update_saved_search.status == 200
+  when: 
+   - splunk_cloud_stack not in (lookup('ansible.builtin.ini', 'enableOnHost', section=savedsearch_name, file=ss_tmp_file.path) | default("unknown")).split(",") and 
+    r_get_saved_search.json.entry[0].content.disabled | lower | trim not in ("1", "true") 
+  retries: 5
+  delay: 5
+  tags:
+    - splunk_cloud_check_app
+
+
+
+
+

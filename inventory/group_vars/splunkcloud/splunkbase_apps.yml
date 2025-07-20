@@ -1,0 +1,55 @@
+---
+splunkbase_app_list:
+  - id: 2968 # SA-cim_vladiator
+    version: "2.0.0"
+    license: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin,power"
+  
+  - id: 6731 # Splunk Cloud Deployment Manager
+    version: "2024.12.24+8c6acd5"
+    license: "https://cdn.splunkbase.splunk.com/static/misc/eula.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk Machine Learning Toolkit
+  - id: 2890
+    version: "5.5.0"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Splunk App for Lookup File Editing
+  - id: 1724
+    version: "4.0.4"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+
+  # Splunk Common Information Model (CIM)
+  - id: 1621
+    version: "6.0.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "*"
+      write: "sc_admin"
+
+  # Admins Little Helper for Splunk
+  - id: 6368
+    version: "1.4.1"
+    license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
+    permissions:
+      sharing: "global"
+      read: "sc_admin"
+      write: "sc_admin"
+      
