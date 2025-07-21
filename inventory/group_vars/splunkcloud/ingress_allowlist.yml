@@ -5,12 +5,8 @@ splunk_cloud_ingress_allow_list:
   search-ui:
     - "0.0.0.0/0"
   search-api:
-    # HMCTS VPN Egress
-    - "35.176.93.186/32"
-    # Will Searle
-    - "82.30.10.70/32"
-    # World access
-    # - "0.0.0.0/0"
+    # World access - You wouldnt usually do this!
+    - "0.0.0.0/0"
   idm-api:
     - "0.0.0.0/0"
   s2s:
