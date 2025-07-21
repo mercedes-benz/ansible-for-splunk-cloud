@@ -16,6 +16,7 @@
     status_code: [200, 201]
     headers:
       Authorization: "Bearer {{ splunk_cloud_token }}"
+      Federated-Search-Manage-Ack: "Y"
     body: "{{ user | combine({'password': generated_password}) | to_json }}"
   when: not user_exists and user.state != 'absent'
   register: r_create_user
