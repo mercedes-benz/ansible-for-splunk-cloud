@@ -1,0 +1,20 @@
+name: full deploy
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: full deploy
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_full_deploy.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
+      SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+      SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+      SPLUNKCLOUD_STACK: ${{ secrets.SPLUNKCLOUD_STACK }} 

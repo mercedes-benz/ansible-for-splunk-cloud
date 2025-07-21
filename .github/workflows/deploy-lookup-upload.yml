@@ -1,0 +1,26 @@
+name: deploy lookup upload
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/**"
+      - "inventory/host_vars/*/lookups.yml"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy lookup upload
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_lookup_upload.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
+      SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+      SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+      SPLUNKCLOUD_STACK: ${{ secrets.SPLUNKCLOUD_STACK }} 

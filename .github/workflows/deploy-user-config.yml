@@ -1,0 +1,25 @@
+name: deploy user config
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "inventory/host_vars/*/user_config.yml"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy user config
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_user_config.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
+      SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+      SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+      SPLUNKCLOUD_STACK: ${{ secrets.SPLUNKCLOUD_STACK }} 

@@ -1,0 +1,25 @@
+name: deploy limits conf
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "inventory/host_vars/*/limits_conf.yml"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  ansible:
+    name: deploy limits conf
+    uses: ./.github/workflows/ansible-playbook.yml
+    with:
+      ansible_playbook: cloud_limits_conf.yml
+      ansible_inventory: inventory
+    secrets:
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
+      SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+      SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+      SPLUNKCLOUD_STACK: ${{ secrets.SPLUNKCLOUD_STACK }} 
