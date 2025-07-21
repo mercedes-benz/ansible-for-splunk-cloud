@@ -59,4 +59,4 @@
       app: "{{ private_app_name }}"
       output_mode: "json"
     status_code: 200
-  when: upload_results == 200
+  when: upload_results.status == 200

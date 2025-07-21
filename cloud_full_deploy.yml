@@ -10,6 +10,3 @@
 - import_playbook: cloud_egress_allow.yml
 - import_playbook: cloud_index_config.yml
 - import_playbook: cloud_privateapp_install.yml
-- import_playbook: cloud_ddss_storage.yml
-- import_playbook: cloud_limits_conf.yml
-- import_playbook: cloud_maintenance_window.yml
