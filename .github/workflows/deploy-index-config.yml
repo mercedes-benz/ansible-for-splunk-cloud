@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "inventory/host_vars/*/index_config.yml"
+      - "inventory/group_vars/*/index_config.yml"
 
 concurrency:
   group: ${{ github.workflow }}
