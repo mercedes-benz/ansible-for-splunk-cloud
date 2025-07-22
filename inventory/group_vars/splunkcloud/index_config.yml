@@ -97,6 +97,10 @@ splunk_cloud_index_list:
   #   searchableDays: 180
   #   maxDataSizeMB: 0
 
+  - name: "demo_index"
+    searchableDays: 180
+    maxDataSizeMB: 0
+
 #  - name: "archive_common_threat"
 #    searchableDays: 7
 #    maxDataSizeMB: 0
