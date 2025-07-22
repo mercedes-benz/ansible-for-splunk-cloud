@@ -46,7 +46,7 @@ splunkbase_app_list:
 
   # Admins Little Helper for Splunk
   - id: 6368
-    version: "1.4.1"
+    version: "1.5.0"
     license: "https://www.splunk.com/en_us/legal/splunk-general-terms.html"
     permissions:
       sharing: "global"
