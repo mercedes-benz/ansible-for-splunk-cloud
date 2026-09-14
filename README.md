@@ -1,3 +1,5 @@
+# ⚠️ This project is no longer maintained and is archived. ⚠️
+
 # ansible-for-splunk-cloud
 
 ## Usage
